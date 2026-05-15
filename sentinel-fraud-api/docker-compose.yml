@@ -1,0 +1,37 @@
+services:
+  api:
+    build: .
+    container_name: sentinel_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    env_file:
+      - .env
+
+  postgres:
+    image: postgres:17
+    container_name: sentinel_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sentinel
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:8
+    container_name: sentinel_redis
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: sentinel_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"

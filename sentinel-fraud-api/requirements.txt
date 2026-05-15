@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sqlalchemy
+asyncpg
+alembic
+pydantic-settings
+psycopg[binary]
+python-jose
+passlib[argon2]
+redis
+aio-pika
+httpx
+python-multipart
