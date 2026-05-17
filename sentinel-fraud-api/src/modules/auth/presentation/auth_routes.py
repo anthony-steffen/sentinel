@@ -1,6 +1,11 @@
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+)
 
 from src.core.security.jwt import (
     create_access_token,
@@ -10,6 +15,14 @@ from src.core.security.jwt import (
 from src.core.security.password import (
     hash_password,
     verify_password,
+)
+
+from src.modules.auth.data.fake_users_db import (
+    fake_users_db,
+)
+
+from src.modules.auth.dependencies.current_user import (
+    get_current_user,
 )
 
 from src.modules.auth.domain.schemas.auth_schema import (
@@ -23,15 +36,14 @@ router = APIRouter(
     tags=["Auth"],
 )
 
-fake_users_db = []
 
-
-@router.post("/register")
+@router.post(
+    "/register",
+    status_code=status.HTTP_201_CREATED,
+)
 async def register(
     data: RegisterRequest,
 ):
-    print("REGISTER START")
-
     existing_user = next(
         (user for user in fake_users_db if user["email"] == data.email),
         None,
@@ -39,7 +51,7 @@ async def register(
 
     if existing_user:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="User already exists",
         )
 
@@ -73,7 +85,7 @@ async def login(
 
     if not user:
         raise HTTPException(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
         )
 
@@ -84,7 +96,7 @@ async def login(
 
     if not valid_password:
         raise HTTPException(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
         )
 
@@ -100,3 +112,13 @@ async def login(
         access_token=access_token,
         refresh_token=refresh_token,
     )
+
+
+@router.get("/me")
+async def me(
+    current_user=Depends(get_current_user),
+):
+    return {
+        "id": current_user["id"],
+        "email": current_user["email"],
+    }
