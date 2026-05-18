@@ -1,11 +1,12 @@
-from uuid import uuid4
-
 from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
-    status,
 )
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.core.database.database import get_db
 
 from src.core.security.jwt import (
     create_access_token,
@@ -15,10 +16,6 @@ from src.core.security.jwt import (
 from src.core.security.password import (
     hash_password,
     verify_password,
-)
-
-from src.modules.auth.data.fake_users_db import (
-    fake_users_db,
 )
 
 from src.modules.auth.dependencies.current_user import (
@@ -31,43 +28,44 @@ from src.modules.auth.domain.schemas.auth_schema import (
     TokenResponse,
 )
 
+from src.modules.users.infrastructure.repositories.user_repository import (
+    UserRepository,
+)
+
 router = APIRouter(
     prefix="/auth",
     tags=["Auth"],
 )
 
 
-@router.post(
-    "/register",
-    status_code=status.HTTP_201_CREATED,
-)
+@router.post("/register")
 async def register(
     data: RegisterRequest,
+    session: AsyncSession = Depends(get_db),
 ):
-    existing_user = next(
-        (user for user in fake_users_db if user["email"] == data.email),
-        None,
+    repository = UserRepository(session)
+
+    existing_user = await repository.find_by_email(
+        data.email,
     )
 
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=400,
             detail="User already exists",
         )
 
-    user = {
-        "id": str(uuid4()),
-        "email": data.email,
-        "password_hash": hash_password(
+    user = await repository.create(
+        email=data.email,
+        password_hash=hash_password(
             data.password,
         ),
-    }
-
-    fake_users_db.append(user)
+        full_name=data.full_name,
+    )
 
     return {
-        "id": user["id"],
-        "email": user["email"],
+        "id": str(user.id),
+        "email": user.email,
     }
 
 
@@ -77,35 +75,37 @@ async def register(
 )
 async def login(
     data: LoginRequest,
+    session: AsyncSession = Depends(get_db),
 ):
-    user = next(
-        (user for user in fake_users_db if user["email"] == data.email),
-        None,
+    repository = UserRepository(session)
+
+    user = await repository.find_by_email(
+        data.email,
     )
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=401,
             detail="Invalid credentials",
         )
 
     valid_password = verify_password(
         data.password,
-        user["password_hash"],
+        user.password_hash,
     )
 
     if not valid_password:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=401,
             detail="Invalid credentials",
         )
 
     access_token = create_access_token(
-        subject=user["id"],
+        subject=str(user.id),
     )
 
     refresh_token = create_refresh_token(
-        subject=user["id"],
+        subject=str(user.id),
     )
 
     return TokenResponse(
@@ -119,6 +119,7 @@ async def me(
     current_user=Depends(get_current_user),
 ):
     return {
-        "id": current_user["id"],
-        "email": current_user["email"],
+        "id": str(current_user.id),
+        "email": current_user.email,
+        "full_name": current_user.full_name,
     }

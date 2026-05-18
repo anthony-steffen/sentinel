@@ -8,8 +8,9 @@ from alembic import context
 
 from src.core.database.base import Base
 from src.core.database.database import DATABASE_URL
-
-from src.modules.users.domain.entities.user_entity import User
+from src.modules.users.infrastructure.models.user_model import (  # noqa: F401
+    UserModel,
+)
 
 config = context.config
 
@@ -17,6 +18,7 @@ config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
 
 target_metadata = Base.metadata
 

@@ -1,19 +1,10 @@
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+from collections.abc import AsyncGenerator
 
-from src.core.config.settings import settings
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine
 
-DATABASE_URL = (
-    f"postgresql+asyncpg://"
-    f"{settings.DB_USER}:"
-    f"{settings.DB_PASSWORD}@"
-    f"{settings.DB_HOST}:"
-    f"{settings.DB_PORT}/"
-    f"{settings.DB_NAME}"
-)
+DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/sentinel"
 
 engine = create_async_engine(
     DATABASE_URL,
@@ -25,3 +16,11 @@ AsyncSessionLocal = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
 )
+
+
+async def get_db() -> AsyncGenerator[
+    AsyncSession,
+    None,
+]:
+    async with AsyncSessionLocal() as session:
+        yield session

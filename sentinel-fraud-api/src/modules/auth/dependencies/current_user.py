@@ -1,42 +1,63 @@
-from fastapi import (
-    Depends,
-    HTTPException,
-    status,
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
+
+from jose import JWTError
+from jose import jwt
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.core.database.database import get_db
+
+from src.core.security.jwt import ALGORITHM
+from src.core.security.jwt import SECRET_KEY
+
+from src.modules.users.infrastructure.repositories.user_repository import (
+    UserRepository,
 )
 
-from src.core.security.jwt import (
-    decode_token,
-    oauth2_scheme,
-)
-
-from src.modules.auth.data.fake_users_db import (
-    fake_users_db,
-)
+security = HTTPBearer()
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(
+        security,
+    ),
+    db: AsyncSession = Depends(get_db),
 ):
-    payload = decode_token(token)
+    token = credentials.credentials
 
-    user_id = payload.get("sub")
-
-    token_type = payload.get("type")
-
-    if token_type != "access":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token type",
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM],
         )
 
-    user = next(
-        (user for user in fake_users_db if user["id"] == user_id),
-        None,
+        user_id = payload.get("sub")
+
+        if not user_id:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid token",
+            )
+
+    except JWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token",
+        )
+
+    repository = UserRepository(db)
+
+    user = await repository.find_by_id(
+        user_id,
     )
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=404,
             detail="User not found",
         )
 
