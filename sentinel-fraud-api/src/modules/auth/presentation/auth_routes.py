@@ -36,10 +36,30 @@ from src.modules.users.infrastructure.models.user_model import (
     UserModel,
 )
 
+from src.modules.auth.dependencies.roles import (
+    require_roles,
+)
+
+from src.modules.users.domain.enums.user_enums import (
+    UserRole,
+)
+
 router = APIRouter(
     prefix="/auth",
     tags=["Auth"],
 )
+
+
+@router.get("/admin-only")
+async def admin_only(
+    current_user=Depends(
+        require_roles(UserRole.ADMIN),
+    ),
+):
+    return {
+        "message": "Welcome admin",
+        "user": current_user.email,
+    }
 
 
 @router.post("/register")
