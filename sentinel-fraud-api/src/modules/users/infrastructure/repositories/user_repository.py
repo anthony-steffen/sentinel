@@ -50,3 +50,21 @@ class UserRepository:
         result = await self.session.execute(query)
 
         return result.scalar_one_or_none()
+
+    async def find_all(
+        self,
+    ) -> list[UserModel]:
+        query = select(UserModel)
+
+        result = await self.session.execute(query)
+        return result.scalars().all()
+
+    async def update(
+        self,
+        user: UserModel,
+    ) -> UserModel:
+        await self.session.commit()
+
+        await self.session.refresh(user)
+
+        return user
