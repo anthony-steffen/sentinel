@@ -44,6 +44,14 @@ from src.modules.users.domain.enums.user_enums import (
     UserRole,
 )
 
+from src.core.security.jwt import (
+    decode_token,
+)
+
+from src.modules.auth.domain.schemas.auth_schema import (
+    RefreshTokenRequest,
+)
+
 router = APIRouter(
     prefix="/auth",
     tags=["Auth"],
@@ -152,3 +160,44 @@ async def me(
         "role": current_user.role,
         "status": current_user.status,
     }
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_token(
+    data: RefreshTokenRequest,
+    session: AsyncSession = Depends(get_db),
+):
+    payload = decode_token(data.refresh_token)
+    token_type = payload.get("type")
+
+    if token_type != "refresh":
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token",
+        )
+    user_id = payload.get("sub")
+
+    repository = UserRepository(session)
+
+    user = await repository.find_by_id(
+        user_id,
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+
+    access_token = create_access_token(
+        subject=str(user.id),
+    )
+
+    refresh_token = create_refresh_token(
+        subject=str(user.id),
+    )
+
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+    )
