@@ -1,7 +1,5 @@
 from sqlalchemy import Enum, String
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.core.database.base import (
     Base,
