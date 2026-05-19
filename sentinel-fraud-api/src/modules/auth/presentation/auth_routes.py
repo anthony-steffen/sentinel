@@ -1,16 +1,17 @@
-from fastapi import (
+from fastapi import (  # type: ignore
     APIRouter,
     Depends,
     HTTPException,
 )
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
 
 from src.core.database.database import get_db
 
 from src.core.security.jwt import (
     create_access_token,
     create_refresh_token,
+    decode_token,
 )
 
 from src.core.security.password import (
@@ -22,34 +23,28 @@ from src.modules.auth.dependencies.current_user import (
     get_current_user,
 )
 
+from src.modules.auth.dependencies.roles import (
+    require_roles,
+)
+
 from src.modules.auth.domain.schemas.auth_schema import (
     LoginRequest,
+    RefreshTokenRequest,
     RegisterRequest,
     TokenResponse,
 )
 
-from src.modules.users.infrastructure.repositories.user_repository import (
-    UserRepository,
+from src.modules.users.domain.enums.user_enums import (
+    UserRole,
+    UserStatus,
 )
 
 from src.modules.users.infrastructure.models.user_model import (
     UserModel,
 )
 
-from src.modules.auth.dependencies.roles import (
-    require_roles,
-)
-
-from src.modules.users.domain.enums.user_enums import (
-    UserRole,
-)
-
-from src.core.security.jwt import (
-    decode_token,
-)
-
-from src.modules.auth.domain.schemas.auth_schema import (
-    RefreshTokenRequest,
+from src.modules.users.infrastructure.repositories.user_repository import (
+    UserRepository,
 )
 
 router = APIRouter(
@@ -124,6 +119,12 @@ async def login(
             detail="Invalid credentials",
         )
 
+    if user.status != UserStatus.ACTIVE:
+        raise HTTPException(
+            status_code=403,
+            detail="User is inactive or blocked",
+        )
+
     valid_password = verify_password(
         data.password,
         user.password_hash,
@@ -162,12 +163,18 @@ async def me(
     }
 
 
-@router.post("/refresh", response_model=TokenResponse)
+@router.post(
+    "/refresh",
+    response_model=TokenResponse,
+)
 async def refresh_token(
     data: RefreshTokenRequest,
     session: AsyncSession = Depends(get_db),
 ):
-    payload = decode_token(data.refresh_token)
+    payload = decode_token(
+        data.refresh_token,
+    )
+
     token_type = payload.get("type")
 
     if token_type != "refresh":
@@ -175,6 +182,7 @@ async def refresh_token(
             status_code=401,
             detail="Invalid token",
         )
+
     user_id = payload.get("sub")
 
     repository = UserRepository(session)
@@ -185,8 +193,14 @@ async def refresh_token(
 
     if not user:
         raise HTTPException(
-            status_code=404,
+            status_code=401,
             detail="User not found",
+        )
+
+    if user.status != UserStatus.ACTIVE:
+        raise HTTPException(
+            status_code=403,
+            detail="User is inactive or blocked",
         )
 
     access_token = create_access_token(
