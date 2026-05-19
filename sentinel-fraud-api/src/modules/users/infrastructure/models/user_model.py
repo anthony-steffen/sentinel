@@ -1,10 +1,18 @@
-from sqlalchemy import String
+from sqlalchemy import Enum, String
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
-from src.core.database.base import Base
-from src.core.database.base import TimestampMixin
-from src.core.database.base import UUIDMixin
+
+from src.core.database.base import (
+    Base,
+    TimestampMixin,
+    UUIDMixin,
+)
+
+from src.modules.users.domain.enums.user_enums import (
+    UserRole,
+    UserStatus,
+)
 
 
 class UserModel(
@@ -28,5 +36,17 @@ class UserModel(
 
     full_name: Mapped[str] = mapped_column(
         String(255),
+        nullable=False,
+    )
+
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole),
+        default=UserRole.OPERATOR,
+        nullable=False,
+    )
+
+    status: Mapped[UserStatus] = mapped_column(
+        Enum(UserStatus),
+        default=UserStatus.ACTIVE,
         nullable=False,
     )

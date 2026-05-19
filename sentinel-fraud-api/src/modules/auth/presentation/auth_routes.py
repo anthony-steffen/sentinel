@@ -32,6 +32,10 @@ from src.modules.users.infrastructure.repositories.user_repository import (
     UserRepository,
 )
 
+from src.modules.users.infrastructure.models.user_model import (
+    UserModel,
+)
+
 router = APIRouter(
     prefix="/auth",
     tags=["Auth"],
@@ -55,7 +59,7 @@ async def register(
             detail="User already exists",
         )
 
-    user = await repository.create(
+    user = UserModel(
         email=data.email,
         password_hash=hash_password(
             data.password,
@@ -63,9 +67,12 @@ async def register(
         full_name=data.full_name,
     )
 
+    user = await repository.create(user)
+
     return {
         "id": str(user.id),
         "email": user.email,
+        "full_name": user.full_name,
     }
 
 
@@ -122,4 +129,6 @@ async def me(
         "id": str(current_user.id),
         "email": current_user.email,
         "full_name": current_user.full_name,
+        "role": current_user.role,
+        "status": current_user.status,
     }
