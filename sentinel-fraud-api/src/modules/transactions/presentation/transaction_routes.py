@@ -11,10 +11,6 @@ from src.modules.auth.dependencies.current_user import (
     get_current_user,
 )
 
-from src.modules.transactions.domain.enums.transaction_enums import (
-    TransactionStatus,
-)
-
 from src.modules.transactions.domain.schemas.transaction_schema import (
     CreateTransactionRequest,
     TransactionResponse,
@@ -26,6 +22,10 @@ from src.modules.transactions.infrastructure.models.transaction_model import (
 
 from src.modules.transactions.infrastructure.repositories.transaction_repository import (  # noqa: E501
     TransactionRepository,
+)
+
+from src.modules.transactions.services.fraud_detector import (
+    FraudDetector,
 )
 
 router = APIRouter(
@@ -45,21 +45,19 @@ async def create_transaction(
 ):
     repository = TransactionRepository(session)
 
-    risk_score = 15.0
-
-    status = TransactionStatus.APPROVED
-
-    if data.amount >= 5000:
-        risk_score = 85.0
-        status = TransactionStatus.REVIEW
+    analysis = FraudDetector.analyze(
+        amount=float(data.amount),
+        ip_address=data.ip_address,
+        device_id=data.device_id,
+    )
 
     transaction = TransactionModel(
         user_id=current_user.id,
         amount=data.amount,
         ip_address=data.ip_address,
         device_id=data.device_id,
-        risk_score=risk_score,
-        status=status,
+        risk_score=analysis.risk_score,
+        status=analysis.status,
     )
 
     transaction = await repository.create(
