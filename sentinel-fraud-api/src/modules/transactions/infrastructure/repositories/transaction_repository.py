@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,6 +31,18 @@ class TransactionRepository:
         self,
     ) -> list[TransactionModel]:
         query = select(TransactionModel)
+
+        result = await self.session.execute(query)
+
+        return list(result.scalars().all())
+
+    async def find_by_user_id(
+        self,
+        user_id: UUID,
+    ) -> list[TransactionModel]:
+        query = select(TransactionModel).where(
+            TransactionModel.user_id == user_id,
+        )
 
         result = await self.session.execute(query)
 

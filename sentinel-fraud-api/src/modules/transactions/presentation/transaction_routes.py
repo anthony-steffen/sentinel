@@ -45,10 +45,15 @@ async def create_transaction(
 ):
     repository = TransactionRepository(session)
 
+    user_transactions = await repository.find_by_user_id(
+        current_user.id,
+    )
+
     analysis = FraudDetector.analyze(
         amount=float(data.amount),
         ip_address=data.ip_address,
         device_id=data.device_id,
+        user_transactions=user_transactions,
     )
 
     transaction = TransactionModel(
