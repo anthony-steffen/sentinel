@@ -2,6 +2,7 @@ from fastapi import (  # type: ignore
     APIRouter,
     Depends,
     HTTPException,
+    Request,
 )
 
 from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
@@ -45,6 +46,18 @@ from src.modules.users.infrastructure.models.user_model import (
 
 from src.modules.users.infrastructure.repositories.user_repository import (
     UserRepository,
+)
+
+from src.modules.audit.infrastructure.models.audit_model import (
+    AuditModel,
+)
+
+from src.modules.audit.infrastructure.repositories.audit_repository import (
+    AuditRepository,
+)
+
+from src.modules.audit.domain.enums.audit_action import (
+    AuditAction,
 )
 
 router = APIRouter(
@@ -104,22 +117,41 @@ async def register(
     response_model=TokenResponse,
 )
 async def login(
+    request: Request,
     data: LoginRequest,
     session: AsyncSession = Depends(get_db),
 ):
     repository = UserRepository(session)
+
+    audit_repository = AuditRepository(session)
 
     user = await repository.find_by_email(
         data.email,
     )
 
     if not user:
+        await audit_repository.create(
+            AuditModel(
+                user_id=None,
+                action=AuditAction.LOGIN_FAILED,
+                ip_address=request.client.host,
+            )
+        )
+
         raise HTTPException(
             status_code=401,
             detail="Invalid credentials",
         )
 
     if user.status != UserStatus.ACTIVE:
+        await audit_repository.create(
+            AuditModel(
+                user_id=str(user.id),
+                action=AuditAction.LOGIN_BLOCKED,
+                ip_address=request.client.host,
+            )
+        )
+
         raise HTTPException(
             status_code=403,
             detail="User is inactive or blocked",
@@ -131,6 +163,14 @@ async def login(
     )
 
     if not valid_password:
+        await audit_repository.create(
+            AuditModel(
+                user_id=str(user.id),
+                action=AuditAction.LOGIN_FAILED,
+                ip_address=request.client.host,
+            )
+        )
+
         raise HTTPException(
             status_code=401,
             detail="Invalid credentials",
@@ -142,6 +182,14 @@ async def login(
 
     refresh_token = create_refresh_token(
         subject=str(user.id),
+    )
+
+    await audit_repository.create(
+        AuditModel(
+            user_id=str(user.id),
+            action=AuditAction.LOGIN_SUCCESS,
+            ip_address=request.client.host,
+        )
     )
 
     return TokenResponse(
@@ -168,6 +216,7 @@ async def me(
     response_model=TokenResponse,
 )
 async def refresh_token(
+    request: Request,
     data: RefreshTokenRequest,
     session: AsyncSession = Depends(get_db),
 ):
@@ -186,6 +235,8 @@ async def refresh_token(
     user_id = payload.get("sub")
 
     repository = UserRepository(session)
+
+    audit_repository = AuditRepository(session)
 
     user = await repository.find_by_id(
         user_id,
@@ -209,6 +260,14 @@ async def refresh_token(
 
     refresh_token = create_refresh_token(
         subject=str(user.id),
+    )
+
+    await audit_repository.create(
+        AuditModel(
+            user_id=str(user.id),
+            action=AuditAction.REFRESH_TOKEN,
+            ip_address=request.client.host,
+        )
     )
 
     return TokenResponse(
