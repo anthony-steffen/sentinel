@@ -8,6 +8,10 @@ from src.modules.users.presentation.user_routes import (
     router as users_router,
 )
 
+from src.modules.transactions.presentation.transaction_routes import (
+    router as transactions_router,
+)
+
 app = FastAPI(
     title="Sentinel Fraud API",
 )
@@ -22,3 +26,4 @@ async def healthcheck():
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(transactions_router)
