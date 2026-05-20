@@ -14,6 +14,9 @@ from src.modules.users.infrastructure.models.user_model import (  # noqa: F401
 from src.modules.audit.infrastructure.models.audit_model import (  # noqa: F401
     AuditModel,
 )
+from src.modules.transactions.infrastructure.models.transaction_model import (  # noqa: F401
+    TransactionModel,
+)
 
 config = context.config
 
