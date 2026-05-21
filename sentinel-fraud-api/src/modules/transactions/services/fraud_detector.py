@@ -36,6 +36,7 @@ class FraudDetector:
         ip_address: str,
         device_id: str,
         user_transactions: list[TransactionModel],
+        recent_transactions_count: int,
         blacklisted_ip: BlacklistModel | None,
         blacklisted_device: BlacklistModel | None,
     ) -> FraudAnalysisResult:
@@ -75,7 +76,7 @@ class FraudDetector:
                 FraudSignal.LOCAL_IP,
             )
 
-        # Regra 4 — muitas transações
+        # Regra 4 — muitas transações históricas
         if len(user_transactions) >= 5:
             risk_score += 15
 
@@ -83,7 +84,7 @@ class FraudDetector:
                 FraudSignal.HIGH_TRANSACTION_COUNT,
             )
 
-        # Regra 5 — alto volume
+        # Regra 5 — alto volume financeiro
         total_amount = sum(
             float(transaction.amount) for transaction in user_transactions
         )
@@ -109,6 +110,14 @@ class FraudDetector:
 
             signals.append(
                 FraudSignal.BLACKLISTED_DEVICE,
+            )
+
+        # Regra 8 — alta velocidade transacional
+        if recent_transactions_count >= 5:
+            risk_score += 40
+
+            signals.append(
+                FraudSignal.HIGH_VELOCITY,
             )
 
         status = TransactionStatus.APPROVED

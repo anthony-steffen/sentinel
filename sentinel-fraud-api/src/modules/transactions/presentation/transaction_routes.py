@@ -29,12 +29,12 @@ from src.modules.transactions.domain.schemas.transaction_schema import (
     TransactionResponse,
 )
 
-from src.modules.transactions.infrastructure.repositories.blacklist_repository import (  # noqa: E501
-    BlacklistRepository,
-)
-
 from src.modules.transactions.infrastructure.models.transaction_model import (
     TransactionModel,
+)
+
+from src.modules.transactions.infrastructure.repositories.blacklist_repository import (  # noqa: E501
+    BlacklistRepository,
 )
 
 from src.modules.transactions.infrastructure.repositories.transaction_repository import (  # noqa: E501
@@ -72,6 +72,12 @@ async def create_transaction(
         current_user.id,
     )
 
+    recent_transactions_count = (
+        await transaction_repository.count_recent_transactions(  # noqa: E501
+            current_user.id,
+        )
+    )
+
     blacklisted_ip = await blacklist_repository.find_by_value(
         data.ip_address,
     )
@@ -91,6 +97,7 @@ async def create_transaction(
         ip_address=data.ip_address,
         device_id=data.device_id,
         user_transactions=user_transactions,
+        recent_transactions_count=recent_transactions_count,
         blacklisted_ip=blacklisted_ip,
         blacklisted_device=blacklisted_device,
     )
