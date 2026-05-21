@@ -15,6 +15,10 @@ from src.modules.auth.dependencies.roles import (
     require_roles,
 )
 
+from src.modules.transactions.domain.enums.blacklist_type_enums import (
+    BlacklistType,
+)
+
 from src.modules.transactions.domain.enums.transaction_enums import (
     TransactionStatus,
 )
@@ -23,6 +27,10 @@ from src.modules.transactions.domain.schemas.transaction_schema import (
     CreateTransactionRequest,
     TransactionAnalyticsResponse,
     TransactionResponse,
+)
+
+from src.modules.transactions.infrastructure.repositories.blacklist_repository import (  # noqa: E501
+    BlacklistRepository,
 )
 
 from src.modules.transactions.infrastructure.models.transaction_model import (
@@ -56,17 +64,35 @@ async def create_transaction(
     session: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    repository = TransactionRepository(session)
+    transaction_repository = TransactionRepository(session)
 
-    user_transactions = await repository.find_by_user_id(
+    blacklist_repository = BlacklistRepository(session)
+
+    user_transactions = await transaction_repository.find_by_user_id(
         current_user.id,
     )
+
+    blacklisted_ip = await blacklist_repository.find_by_value(
+        data.ip_address,
+    )
+
+    blacklisted_device = await blacklist_repository.find_by_value(
+        data.device_id,
+    )
+
+    if blacklisted_ip and blacklisted_ip.type != BlacklistType.IP:
+        blacklisted_ip = None
+
+    if blacklisted_device and blacklisted_device.type != BlacklistType.DEVICE:
+        blacklisted_device = None
 
     analysis = FraudDetector.analyze(
         amount=float(data.amount),
         ip_address=data.ip_address,
         device_id=data.device_id,
         user_transactions=user_transactions,
+        blacklisted_ip=blacklisted_ip,
+        blacklisted_device=blacklisted_device,
     )
 
     transaction = TransactionModel(
@@ -79,7 +105,7 @@ async def create_transaction(
         status=analysis.status,
     )
 
-    transaction = await repository.create(
+    transaction = await transaction_repository.create(
         transaction,
     )
 
@@ -140,7 +166,9 @@ async def transaction_analytics(
 
     transactions = await repository.list_all()
 
-    total_transactions = len(transactions)
+    total_transactions = len(
+        transactions,
+    )
 
     total_amount = sum(
         float(transaction.amount) for transaction in transactions
@@ -158,7 +186,7 @@ async def transaction_analytics(
         [
             transaction
             for transaction in transactions
-            if transaction.status == TransactionStatus.APPROVED
+            if (transaction.status == TransactionStatus.APPROVED)
         ]
     )
 
@@ -166,7 +194,7 @@ async def transaction_analytics(
         [
             transaction
             for transaction in transactions
-            if transaction.status == TransactionStatus.REJECTED
+            if (transaction.status == TransactionStatus.REJECTED)
         ]
     )
 
@@ -174,7 +202,7 @@ async def transaction_analytics(
         [
             transaction
             for transaction in transactions
-            if transaction.status == TransactionStatus.REVIEW
+            if (transaction.status == TransactionStatus.REVIEW)
         ]
     )
 

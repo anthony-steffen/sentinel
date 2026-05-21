@@ -6,6 +6,10 @@ from src.modules.transactions.domain.enums.transaction_enums import (
     TransactionStatus,
 )
 
+from src.modules.transactions.infrastructure.models.blacklist_model import (
+    BlacklistModel,
+)
+
 from src.modules.transactions.infrastructure.models.transaction_model import (
     TransactionModel,
 )
@@ -19,7 +23,9 @@ class FraudAnalysisResult:
         signals: list[FraudSignal],
     ):
         self.risk_score = risk_score
+
         self.status = status
+
         self.signals = signals
 
 
@@ -30,6 +36,8 @@ class FraudDetector:
         ip_address: str,
         device_id: str,
         user_transactions: list[TransactionModel],
+        blacklisted_ip: BlacklistModel | None,
+        blacklisted_device: BlacklistModel | None,
     ) -> FraudAnalysisResult:
         risk_score = 0.0
 
@@ -59,7 +67,7 @@ class FraudDetector:
                 FraudSignal.SUSPICIOUS_DEVICE,
             )
 
-        # Regra 3 — IP local/suspeito
+        # Regra 3 — IP local
         if ip_address.startswith("10.") or ip_address.startswith("127."):
             risk_score += 10
 
@@ -75,7 +83,7 @@ class FraudDetector:
                 FraudSignal.HIGH_TRANSACTION_COUNT,
             )
 
-        # Regra 5 — alto volume acumulado
+        # Regra 5 — alto volume
         total_amount = sum(
             float(transaction.amount) for transaction in user_transactions
         )
@@ -85,6 +93,22 @@ class FraudDetector:
 
             signals.append(
                 FraudSignal.HIGH_TRANSACTION_VOLUME,
+            )
+
+        # Regra 6 — IP blacklistado
+        if blacklisted_ip:
+            risk_score += 100
+
+            signals.append(
+                FraudSignal.BLACKLISTED_IP,
+            )
+
+        # Regra 7 — device blacklistado
+        if blacklisted_device:
+            risk_score += 100
+
+            signals.append(
+                FraudSignal.BLACKLISTED_DEVICE,
             )
 
         status = TransactionStatus.APPROVED
