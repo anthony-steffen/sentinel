@@ -85,3 +85,20 @@ async def list_transactions(
     transactions = await repository.list_all()
 
     return transactions
+
+
+@router.get(
+    "/my",
+    response_model=list[TransactionResponse],
+)
+async def my_transactions(
+    session: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    repository = TransactionRepository(session)
+
+    transactions = await repository.find_by_user_id(
+        current_user.id,
+    )
+
+    return transactions
