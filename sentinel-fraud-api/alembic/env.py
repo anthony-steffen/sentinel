@@ -18,6 +18,10 @@ from src.modules.transactions.infrastructure.models.transaction_model import (  
     TransactionModel,
 )
 
+from src.modules.transactions.infrastructure.models.blacklist_model import (  # noqa: F401
+    BlacklistModel,
+)
+
 config = context.config
 
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
