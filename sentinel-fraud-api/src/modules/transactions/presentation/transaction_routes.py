@@ -11,8 +11,17 @@ from src.modules.auth.dependencies.current_user import (
     get_current_user,
 )
 
+from src.modules.auth.dependencies.roles import (
+    require_roles,
+)
+
+from src.modules.transactions.domain.enums.transaction_enums import (
+    TransactionStatus,
+)
+
 from src.modules.transactions.domain.schemas.transaction_schema import (
     CreateTransactionRequest,
+    TransactionAnalyticsResponse,
     TransactionResponse,
 )
 
@@ -26,6 +35,10 @@ from src.modules.transactions.infrastructure.repositories.transaction_repository
 
 from src.modules.transactions.services.fraud_detector import (
     FraudDetector,
+)
+
+from src.modules.users.domain.enums.user_enums import (
+    UserRole,
 )
 
 router = APIRouter(
@@ -78,7 +91,12 @@ async def create_transaction(
 )
 async def list_transactions(
     session: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(
+        require_roles(
+            UserRole.ADMIN,
+            UserRole.ANALYST,
+        ),
+    ),
 ):
     repository = TransactionRepository(session)
 
@@ -102,3 +120,68 @@ async def my_transactions(
     )
 
     return transactions
+
+
+@router.get(
+    "/analytics",
+    response_model=TransactionAnalyticsResponse,
+)
+async def transaction_analytics(
+    session: AsyncSession = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            UserRole.ADMIN,
+            UserRole.ANALYST,
+        ),
+    ),
+):
+    repository = TransactionRepository(session)
+
+    transactions = await repository.list_all()
+
+    total_transactions = len(transactions)
+
+    total_amount = sum(
+        float(transaction.amount) for transaction in transactions
+    )  # noqa: E501
+
+    average_risk_score = 0.0
+
+    if total_transactions > 0:
+        average_risk_score = (
+            sum(transaction.risk_score for transaction in transactions)
+            / total_transactions
+        )
+
+    approved_transactions = len(
+        [
+            transaction
+            for transaction in transactions
+            if transaction.status == TransactionStatus.APPROVED
+        ]
+    )
+
+    rejected_transactions = len(
+        [
+            transaction
+            for transaction in transactions
+            if transaction.status == TransactionStatus.REJECTED
+        ]
+    )
+
+    review_transactions = len(
+        [
+            transaction
+            for transaction in transactions
+            if transaction.status == TransactionStatus.REVIEW
+        ]
+    )
+
+    return TransactionAnalyticsResponse(
+        total_transactions=total_transactions,
+        total_amount=total_amount,
+        average_risk_score=average_risk_score,
+        approved_transactions=approved_transactions,
+        rejected_transactions=rejected_transactions,
+        review_transactions=review_transactions,
+    )

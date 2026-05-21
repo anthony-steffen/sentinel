@@ -29,3 +29,14 @@ class TransactionResponse(
 
     class Config:
         from_attributes = True
+
+
+class TransactionAnalyticsResponse(
+    BaseModel,
+):
+    total_transactions: int
+    total_amount: float
+    average_risk_score: float
+    approved_transactions: int
+    rejected_transactions: int
+    review_transactions: int
