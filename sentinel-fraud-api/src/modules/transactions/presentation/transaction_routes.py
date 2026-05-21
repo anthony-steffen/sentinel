@@ -75,6 +75,7 @@ async def create_transaction(
         ip_address=data.ip_address,
         device_id=data.device_id,
         risk_score=analysis.risk_score,
+        fraud_signals=[signal.value for signal in analysis.signals],
         status=analysis.status,
     )
 

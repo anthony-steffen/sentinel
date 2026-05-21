@@ -1,3 +1,7 @@
+from src.modules.transactions.domain.enums.fraud_signal_enums import (
+    FraudSignal,
+)
+
 from src.modules.transactions.domain.enums.transaction_enums import (
     TransactionStatus,
 )
@@ -12,9 +16,11 @@ class FraudAnalysisResult:
         self,
         risk_score: float,
         status: TransactionStatus,
+        signals: list[FraudSignal],
     ):
         self.risk_score = risk_score
         self.status = status
+        self.signals = signals
 
 
 class FraudDetector:
@@ -27,11 +33,17 @@ class FraudDetector:
     ) -> FraudAnalysisResult:
         risk_score = 0.0
 
+        signals: list[FraudSignal] = []
+
         device_id = device_id.lower()
 
         # Regra 1 — valor alto
         if amount >= 5000:
             risk_score += 70
+
+            signals.append(
+                FraudSignal.HIGH_AMOUNT,
+            )
 
         # Regra 2 — device suspeito
         suspicious_devices = [
@@ -43,13 +55,25 @@ class FraudDetector:
         if any(keyword in device_id for keyword in suspicious_devices):
             risk_score += 20
 
-        # Regra 3 — IP suspeito/local
+            signals.append(
+                FraudSignal.SUSPICIOUS_DEVICE,
+            )
+
+        # Regra 3 — IP local/suspeito
         if ip_address.startswith("10.") or ip_address.startswith("127."):
             risk_score += 10
+
+            signals.append(
+                FraudSignal.LOCAL_IP,
+            )
 
         # Regra 4 — muitas transações
         if len(user_transactions) >= 5:
             risk_score += 15
+
+            signals.append(
+                FraudSignal.HIGH_TRANSACTION_COUNT,
+            )
 
         # Regra 5 — alto volume acumulado
         total_amount = sum(
@@ -58,6 +82,10 @@ class FraudDetector:
 
         if total_amount >= 20000:
             risk_score += 25
+
+            signals.append(
+                FraudSignal.HIGH_TRANSACTION_VOLUME,
+            )
 
         status = TransactionStatus.APPROVED
 
@@ -70,4 +98,5 @@ class FraudDetector:
         return FraudAnalysisResult(
             risk_score=risk_score,
             status=status,
+            signals=signals,
         )

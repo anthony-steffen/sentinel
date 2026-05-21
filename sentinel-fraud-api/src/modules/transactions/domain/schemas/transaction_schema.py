@@ -3,6 +3,10 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from src.modules.transactions.domain.enums.fraud_signal_enums import (
+    FraudSignal,
+)
+
 from src.modules.transactions.domain.enums.transaction_enums import (
     TransactionStatus,
 )
@@ -25,6 +29,7 @@ class TransactionResponse(
     ip_address: str
     device_id: str
     risk_score: float
+    fraud_signals: list[FraudSignal]
     status: TransactionStatus
 
     class Config:
