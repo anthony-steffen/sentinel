@@ -81,8 +81,10 @@ async def create_transaction(
         current_user.id,
     )
 
-    recent_transactions_count = await transaction_repository.count_recent_transactions(
-        current_user.id,
+    recent_transactions_count = (
+        await transaction_repository.count_recent_transactions(  # noqa: E501
+            current_user.id,
+        )
     )
 
     blacklisted_ip = await blacklist_repository.find_by_value(
@@ -191,7 +193,9 @@ async def transaction_analytics(
         transactions,
     )
 
-    total_amount = sum(float(transaction.amount) for transaction in transactions)
+    total_amount = sum(
+        float(transaction.amount) for transaction in transactions
+    )  # noqa: E501
 
     average_risk_score = 0.0
 
