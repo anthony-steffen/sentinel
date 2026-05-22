@@ -26,6 +26,10 @@ from src.modules.transactions.domain.schemas.transaction_schema import (
     TransactionResponse,
 )
 
+from src.modules.transactions.domain.schemas.review_transaction_schema import (
+    ReviewTransactionRequest,
+)
+
 from src.modules.transactions.infrastructure.models.transaction_model import (
     TransactionModel,
 )
@@ -46,8 +50,12 @@ from src.modules.users.domain.enums.user_enums import (
     UserRole,
 )
 
-from src.modules.transactions.domain.schemas.review_transaction_schema import (
-    ReviewTransactionRequest,
+from src.modules.audit.domain.enums.audit_action import (
+    AuditAction,
+)
+
+from src.modules.audit.services.audit_service import (
+    AuditService,
 )
 
 router = APIRouter(
@@ -73,10 +81,8 @@ async def create_transaction(
         current_user.id,
     )
 
-    recent_transactions_count = (
-        await transaction_repository.count_recent_transactions(  # noqa: E501
-            current_user.id,
-        )
+    recent_transactions_count = await transaction_repository.count_recent_transactions(
+        current_user.id,
     )
 
     blacklisted_ip = await blacklist_repository.find_by_value(
@@ -115,6 +121,13 @@ async def create_transaction(
 
     transaction = await transaction_repository.create(
         transaction,
+    )
+
+    await AuditService.log(
+        session=session,
+        action=AuditAction.TRANSACTION_CREATED,
+        ip_address=data.ip_address,
+        user_id=str(current_user.id),
     )
 
     return transaction
@@ -178,9 +191,7 @@ async def transaction_analytics(
         transactions,
     )
 
-    total_amount = sum(
-        float(transaction.amount) for transaction in transactions
-    )  # noqa: E501
+    total_amount = sum(float(transaction.amount) for transaction in transactions)
 
     average_risk_score = 0.0
 
@@ -194,7 +205,7 @@ async def transaction_analytics(
         [
             transaction
             for transaction in transactions
-            if (transaction.status == TransactionStatus.APPROVED)
+            if transaction.status == TransactionStatus.APPROVED
         ]
     )
 
@@ -202,7 +213,7 @@ async def transaction_analytics(
         [
             transaction
             for transaction in transactions
-            if (transaction.status == TransactionStatus.REJECTED)
+            if transaction.status == TransactionStatus.REJECTED
         ]
     )
 
@@ -210,7 +221,7 @@ async def transaction_analytics(
         [
             transaction
             for transaction in transactions
-            if (transaction.status == TransactionStatus.REVIEW)
+            if transaction.status == TransactionStatus.REVIEW
         ]
     )
 
@@ -251,10 +262,25 @@ async def review_transaction(
             detail="Transaction not found",
         )
 
+    audit_action = AuditAction.TRANSACTION_REVIEWED
+
+    if data.status == TransactionStatus.APPROVED:
+        audit_action = AuditAction.TRANSACTION_APPROVED
+
+    elif data.status == TransactionStatus.REJECTED:
+        audit_action = AuditAction.TRANSACTION_REJECTED
+
     transaction.status = data.status
 
     transaction = await repository.update(
         transaction,
+    )
+
+    await AuditService.log(
+        session=session,
+        action=audit_action,
+        ip_address=transaction.ip_address,
+        user_id=str(current_user.id),
     )
 
     return transaction
