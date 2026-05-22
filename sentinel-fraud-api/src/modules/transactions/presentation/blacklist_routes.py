@@ -21,7 +21,7 @@ from src.modules.transactions.infrastructure.models.blacklist_model import (
     BlacklistModel,
 )
 
-from src.modules.transactions.infrastructure.repositories.blacklist_repository import (
+from src.modules.transactions.infrastructure.repositories.blacklist_repository import (  # noqa: E501
     BlacklistRepository,
 )
 

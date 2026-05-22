@@ -1,7 +1,4 @@
-from fastapi import (
-    APIRouter,
-    Depends,
-)
+from fastapi import APIRouter, Depends, HTTPException
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -47,6 +44,10 @@ from src.modules.transactions.services.fraud_detector import (
 
 from src.modules.users.domain.enums.user_enums import (
     UserRole,
+)
+
+from src.modules.transactions.domain.schemas.review_transaction_schema import (
+    ReviewTransactionRequest,
 )
 
 router = APIRouter(
@@ -221,3 +222,59 @@ async def transaction_analytics(
         rejected_transactions=rejected_transactions,
         review_transactions=review_transactions,
     )
+
+
+@router.patch(
+    "/review/{transaction_id}",
+    response_model=TransactionResponse,
+)
+async def review_transaction(
+    transaction_id,
+    data: ReviewTransactionRequest,
+    session: AsyncSession = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            UserRole.ADMIN,
+            UserRole.ANALYST,
+        ),
+    ),
+):
+    repository = TransactionRepository(session)
+
+    transaction = await repository.find_by_id(
+        transaction_id,
+    )
+
+    if not transaction:
+        raise HTTPException(
+            status_code=404,
+            detail="Transaction not found",
+        )
+
+    transaction.status = data.status
+
+    transaction = await repository.update(
+        transaction,
+    )
+
+    return transaction
+
+
+@router.get(
+    "/review-queue",
+    response_model=list[TransactionResponse],
+)
+async def review_queue(
+    session: AsyncSession = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            UserRole.ADMIN,
+            UserRole.ANALYST,
+        ),
+    ),
+):
+    repository = TransactionRepository(session)
+
+    transactions = await repository.get_review_queue()
+
+    return transactions

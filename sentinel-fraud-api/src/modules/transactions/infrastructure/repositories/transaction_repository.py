@@ -1,9 +1,15 @@
 from datetime import timedelta
 
+from sqlalchemy import desc
 from sqlalchemy import func
+from sqlalchemy import or_
 from sqlalchemy import select
 
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.modules.transactions.domain.enums.transaction_enums import (
+    TransactionStatus,
+)
 
 from src.modules.transactions.infrastructure.models.transaction_model import (
     TransactionModel,
@@ -56,6 +62,62 @@ class TransactionRepository:
             TransactionModel,
         ).where(
             TransactionModel.user_id == user_id,
+        )
+
+        result = await self.session.execute(
+            query,
+        )
+
+        return list(
+            result.scalars().all(),
+        )
+
+    async def find_by_id(
+        self,
+        transaction_id,
+    ) -> TransactionModel | None:
+        query = select(
+            TransactionModel,
+        ).where(
+            TransactionModel.id == transaction_id,
+        )
+
+        result = await self.session.execute(
+            query,
+        )
+
+        return result.scalar_one_or_none()
+
+    async def update(
+        self,
+        transaction: TransactionModel,
+    ) -> TransactionModel:
+        await self.session.commit()
+
+        await self.session.refresh(
+            transaction,
+        )
+
+        return transaction
+
+    async def get_review_queue(
+        self,
+    ) -> list[TransactionModel]:
+        query = (
+            select(
+                TransactionModel,
+            )
+            .where(
+                or_(
+                    TransactionModel.status == TransactionStatus.REVIEW,
+                    TransactionModel.status == TransactionStatus.REJECTED,
+                )
+            )
+            .order_by(
+                desc(
+                    TransactionModel.risk_score,
+                )
+            )
         )
 
         result = await self.session.execute(
