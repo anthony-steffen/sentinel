@@ -21,6 +21,7 @@ from src.modules.transactions.domain.enums.transaction_enums import (
 )
 
 from src.modules.transactions.domain.schemas.transaction_schema import (
+    AnalyticsEntityResponse,
     CreateTransactionRequest,
     TransactionAnalyticsResponse,
     TransactionResponse,
@@ -81,10 +82,8 @@ async def create_transaction(
         current_user.id,
     )
 
-    recent_transactions_count = (
-        await transaction_repository.count_recent_transactions(  # noqa: E501
-            current_user.id,
-        )
+    recent_transactions_count = await transaction_repository.count_recent_transactions(
+        current_user.id,
     )
 
     blacklisted_ip = await blacklist_repository.find_by_value(
@@ -160,7 +159,7 @@ async def list_transactions(
     response_model=list[TransactionResponse],
 )
 async def my_transactions(
-    session: AsyncSession = Depends(get_db),
+    session: AsyncSession = Depends(get_current_user),
     current_user=Depends(get_current_user),
 ):
     repository = TransactionRepository(session)
@@ -229,6 +228,56 @@ async def transaction_analytics(
         ]
     )
 
+    fraud_rate = 0.0
+
+    review_rate = 0.0
+
+    approval_rate = 0.0
+
+    if total_transactions > 0:
+        fraud_rate = (rejected_transactions / total_transactions) * 100
+
+        review_rate = (review_transactions / total_transactions) * 100
+
+        approval_rate = (approved_transactions / total_transactions) * 100
+
+    ip_counter: dict[str, int] = {}
+
+    device_counter: dict[str, int] = {}
+
+    for transaction in transactions:
+        ip_counter[transaction.ip_address] = (
+            ip_counter.get(transaction.ip_address, 0) + 1
+        )
+
+        device_counter[transaction.device_id] = (
+            device_counter.get(transaction.device_id, 0) + 1
+        )
+
+    top_ips = [
+        AnalyticsEntityResponse(
+            value=ip,
+            count=count,
+        )
+        for ip, count in sorted(
+            ip_counter.items(),
+            key=lambda item: item[1],
+            reverse=True,
+        )[:5]
+    ]
+
+    top_devices = [
+        AnalyticsEntityResponse(
+            value=device,
+            count=count,
+        )
+        for device, count in sorted(
+            device_counter.items(),
+            key=lambda item: item[1],
+            reverse=True,
+        )[:5]
+    ]
+
     return TransactionAnalyticsResponse(
         total_transactions=total_transactions,
         total_amount=total_amount,
@@ -236,6 +285,11 @@ async def transaction_analytics(
         approved_transactions=approved_transactions,
         rejected_transactions=rejected_transactions,
         review_transactions=review_transactions,
+        fraud_rate=fraud_rate,
+        review_rate=review_rate,
+        approval_rate=approval_rate,
+        top_ips=top_ips,
+        top_devices=top_devices,
     )
 
 

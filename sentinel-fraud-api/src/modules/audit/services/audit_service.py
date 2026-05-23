@@ -20,6 +20,7 @@ class AuditService:
         action: AuditAction,
         ip_address: str,
         user_id: str | None = None,
+        metadata: dict | None = None,
     ) -> None:
         repository = AuditRepository(session)
 
@@ -28,6 +29,9 @@ class AuditService:
             action=action,
             ip_address=ip_address,
         )
+
+        # reservado para evolução futura
+        _ = metadata
 
         await repository.create(
             audit,

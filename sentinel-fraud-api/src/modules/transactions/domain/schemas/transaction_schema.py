@@ -36,6 +36,13 @@ class TransactionResponse(
         from_attributes = True
 
 
+class AnalyticsEntityResponse(
+    BaseModel,
+):
+    value: str
+    count: int
+
+
 class TransactionAnalyticsResponse(
     BaseModel,
 ):
@@ -45,3 +52,8 @@ class TransactionAnalyticsResponse(
     approved_transactions: int
     rejected_transactions: int
     review_transactions: int
+    fraud_rate: float
+    review_rate: float
+    approval_rate: float
+    top_ips: list[AnalyticsEntityResponse]
+    top_devices: list[AnalyticsEntityResponse]
