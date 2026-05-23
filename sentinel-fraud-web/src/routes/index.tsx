@@ -6,6 +6,7 @@ import {
 
 import { LoginPage } from "../pages/LoginPage"
 import { DashboardPage } from "../pages/DashboardPage"
+import { ProtectedRoute } from "./ProtectedRoute"
 
 
 export function AppRoutes() {
@@ -15,12 +16,18 @@ export function AppRoutes() {
         
         <Route
           path="/"
-          element={<LoginPage />}
+          element={
+          <LoginPage />
+        }
         />
-
+      
         <Route
           path="/dashboard"
-          element={<DashboardPage />}
+          element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
         />
 
       </Routes>
