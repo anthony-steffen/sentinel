@@ -1,12 +1,12 @@
 import { ThemeProvider } from "./providers/theme-provider"
 
-import { LoginPage } from "./pages/LoginPage"
+import { AppRoutes } from "./routes"
 
 
 function App() {
   return (
     <ThemeProvider>
-      <LoginPage />
+      <AppRoutes />
     </ThemeProvider>
   )
 }
