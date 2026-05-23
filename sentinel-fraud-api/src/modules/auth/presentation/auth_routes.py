@@ -31,6 +31,10 @@ from src.modules.users.domain.enums.user_enums import (
     UserRole,
 )
 
+from src.core.security.rate_limit.rate_limiter import (
+    RateLimiter,
+)
+
 router = APIRouter(
     prefix="/auth",
     tags=["Auth"],
@@ -69,6 +73,9 @@ async def login(
     data: LoginRequest,
     session: AsyncSession = Depends(get_db),
 ):
+    RateLimiter.check_login_rate_limit(
+        request.client.host,
+    )
     return await AuthService.login(
         request=request,
         data=data,

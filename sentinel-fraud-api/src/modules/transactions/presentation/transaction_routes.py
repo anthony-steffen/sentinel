@@ -59,6 +59,10 @@ from src.modules.audit.services.audit_service import (
     AuditService,
 )
 
+from src.core.security.rate_limit.rate_limiter import (
+    RateLimiter,
+)
+
 router = APIRouter(
     prefix="/transactions",
     tags=["Transactions"],
@@ -74,6 +78,10 @@ async def create_transaction(
     session: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
+    RateLimiter.check_transaction_rate_limit(
+        str(current_user.id),
+    )
+
     transaction_repository = TransactionRepository(session)
 
     blacklist_repository = BlacklistRepository(session)
@@ -82,8 +90,10 @@ async def create_transaction(
         current_user.id,
     )
 
-    recent_transactions_count = await transaction_repository.count_recent_transactions(
-        current_user.id,
+    recent_transactions_count = (
+        await transaction_repository.count_recent_transactions(  # noqa: E501
+            current_user.id,
+        )
     )
 
     blacklisted_ip = await blacklist_repository.find_by_value(

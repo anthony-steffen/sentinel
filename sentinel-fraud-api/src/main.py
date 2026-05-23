@@ -20,6 +20,10 @@ from src.modules.audit.presentation.audit_routes import (
     router as audit_router,
 )
 
+from src.modules.dashboard.presentation.dashboard_routes import (
+    router as dashboard_router,
+)
+
 app = FastAPI(
     title="Sentinel Fraud API",
 )
@@ -37,3 +41,4 @@ app.include_router(users_router)
 app.include_router(transactions_router)
 app.include_router(blacklist_router)
 app.include_router(audit_router)
+app.include_router(dashboard_router)
