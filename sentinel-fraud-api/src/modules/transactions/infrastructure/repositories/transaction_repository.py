@@ -148,3 +148,39 @@ class TransactionRepository:
         )
 
         return result.scalar() or 0
+
+    async def count_transactions_by_device(
+        self,
+        device_id: str,
+    ) -> int:
+        query = select(
+            func.count(
+                TransactionModel.id,
+            ),
+        ).where(
+            TransactionModel.device_id == device_id,
+        )
+
+        result = await self.session.execute(
+            query,
+        )
+
+        return result.scalar() or 0
+
+    async def count_transactions_by_ip(
+        self,
+        ip_address: str,
+    ) -> int:
+        query = select(
+            func.count(
+                TransactionModel.id,
+            ),
+        ).where(
+            TransactionModel.ip_address == ip_address,
+        )
+
+        result = await self.session.execute(
+            query,
+        )
+
+        return result.scalar() or 0

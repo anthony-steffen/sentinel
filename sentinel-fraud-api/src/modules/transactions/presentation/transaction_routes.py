@@ -96,6 +96,18 @@ async def create_transaction(
         )
     )
 
+    device_transaction_count = (
+        await transaction_repository.count_transactions_by_device(
+            data.device_id,
+        )
+    )
+
+    ip_transaction_count = (
+        await transaction_repository.count_transactions_by_ip(  # noqa: E501
+            data.ip_address,
+        )
+    )
+
     blacklisted_ip = await blacklist_repository.find_by_value(
         data.ip_address,
     )
@@ -118,6 +130,8 @@ async def create_transaction(
         recent_transactions_count=recent_transactions_count,
         blacklisted_ip=blacklisted_ip,
         blacklisted_device=blacklisted_device,
+        device_transaction_count=device_transaction_count,
+        ip_transaction_count=ip_transaction_count,
     )
 
     transaction = TransactionModel(

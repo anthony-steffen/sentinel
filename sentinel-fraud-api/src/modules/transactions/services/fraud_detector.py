@@ -1,3 +1,5 @@
+from src.core.config.settings import settings
+
 from src.modules.transactions.domain.enums.fraud_signal_enums import (
     FraudSignal,
 )
@@ -23,9 +25,7 @@ class FraudAnalysisResult:
         signals: list[FraudSignal],
     ):
         self.risk_score = risk_score
-
         self.status = status
-
         self.signals = signals
 
 
@@ -39,6 +39,8 @@ class FraudDetector:
         recent_transactions_count: int,
         blacklisted_ip: BlacklistModel | None,
         blacklisted_device: BlacklistModel | None,
+        device_transaction_count: int,
+        ip_transaction_count: int,
     ) -> FraudAnalysisResult:
         risk_score = 0.0
 
@@ -47,7 +49,7 @@ class FraudDetector:
         device_id = device_id.lower()
 
         # Regra 1 — valor alto
-        if amount >= 5000:
+        if amount >= settings.FRAUD_HIGH_AMOUNT_THRESHOLD:
             risk_score += 70
 
             signals.append(
@@ -68,7 +70,7 @@ class FraudDetector:
                 FraudSignal.SUSPICIOUS_DEVICE,
             )
 
-        # Regra 3 — IP local
+        # Regra 3 — IP local/suspeito
         if ip_address.startswith("10.") or ip_address.startswith("127."):
             risk_score += 10
 
@@ -76,36 +78,27 @@ class FraudDetector:
                 FraudSignal.LOCAL_IP,
             )
 
-        # Regra 4 — alta velocidade transacional
-        # Agora baseada apenas em janela recente
-        if recent_transactions_count >= 5:
-            risk_score += 40
-
-            signals.append(
-                FraudSignal.HIGH_VELOCITY,
-            )
-
-        # Regra 5 — quantidade elevada recente
-        if recent_transactions_count >= 3:
-            risk_score += 15
+        # Regra 4 — muitas transações históricas
+        if len(user_transactions) >= 10:
+            risk_score += 10
 
             signals.append(
                 FraudSignal.HIGH_TRANSACTION_COUNT,
             )
 
-        # Regra 6 — volume financeiro recente
-        recent_total_amount = sum(
-            float(transaction.amount) for transaction in user_transactions[-5:]
+        # Regra 5 — alto volume financeiro
+        total_amount = sum(
+            float(transaction.amount) for transaction in user_transactions
         )
 
-        if recent_total_amount >= 10000:
-            risk_score += 25
+        if total_amount >= settings.FRAUD_HIGH_VOLUME_THRESHOLD:
+            risk_score += 15
 
             signals.append(
                 FraudSignal.HIGH_TRANSACTION_VOLUME,
             )
 
-        # Regra 7 — IP blacklistado
+        # Regra 6 — IP blacklistado
         if blacklisted_ip:
             risk_score += 100
 
@@ -113,7 +106,7 @@ class FraudDetector:
                 FraudSignal.BLACKLISTED_IP,
             )
 
-        # Regra 8 — device blacklistado
+        # Regra 7 — device blacklistado
         if blacklisted_device:
             risk_score += 100
 
@@ -121,12 +114,28 @@ class FraudDetector:
                 FraudSignal.BLACKLISTED_DEVICE,
             )
 
+        # Regra 8 — alta velocidade transacional
+        if recent_transactions_count >= settings.FRAUD_HIGH_VELOCITY_THRESHOLD:
+            risk_score += 40
+
+            signals.append(
+                FraudSignal.HIGH_VELOCITY,
+            )
+
+        # Regra 9 — device altamente recorrente
+        if device_transaction_count >= 20:
+            risk_score += 15
+
+        # Regra 10 — IP altamente recorrente
+        if ip_transaction_count >= 30:
+            risk_score += 20
+
         status = TransactionStatus.APPROVED
 
         if risk_score >= 80:
             status = TransactionStatus.REJECTED
 
-        elif risk_score >= 30:
+        elif risk_score >= 40:
             status = TransactionStatus.REVIEW
 
         return FraudAnalysisResult(
