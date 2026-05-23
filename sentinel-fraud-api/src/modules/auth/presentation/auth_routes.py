@@ -73,7 +73,7 @@ async def login(
     data: LoginRequest,
     session: AsyncSession = Depends(get_db),
 ):
-    RateLimiter.check_login_rate_limit(
+    await RateLimiter.check_login_rate_limit(
         request.client.host,
     )
     return await AuthService.login(

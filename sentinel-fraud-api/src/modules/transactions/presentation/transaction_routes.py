@@ -78,7 +78,7 @@ async def create_transaction(
     session: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    RateLimiter.check_transaction_rate_limit(
+    await RateLimiter.check_transaction_rate_limit(
         str(current_user.id),
     )
 

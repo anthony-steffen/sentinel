@@ -7,6 +7,10 @@ from fastapi import HTTPException
 
 from src.core.config.settings import settings
 
+from src.modules.notifications.services.notification_service import (
+    NotificationService,
+)
+
 
 class RateLimiter:
     login_attempts: dict[str, list[datetime]] = defaultdict(
@@ -18,7 +22,7 @@ class RateLimiter:
     )
 
     @classmethod
-    def check_login_rate_limit(
+    async def check_login_rate_limit(
         cls,
         identifier: str,
     ) -> None:
@@ -37,6 +41,10 @@ class RateLimiter:
         ]
 
         if len(cls.login_attempts[identifier]) >= settings.LOGIN_RATE_LIMIT:
+            await NotificationService.send_brute_force_alert(
+                identifier,
+            )
+
             raise HTTPException(
                 status_code=429,
                 detail="Too many login attempts",
@@ -47,7 +55,7 @@ class RateLimiter:
         )
 
     @classmethod
-    def check_transaction_rate_limit(
+    async def check_transaction_rate_limit(
         cls,
         identifier: str,
     ) -> None:
