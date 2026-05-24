@@ -69,12 +69,12 @@ export function TransactionsPage() {
 
                       <td>
                         <div
-                          className={`badge-sm badge ${
+                          className={`text-sm text-center font-bold text ${
                             transaction.risk_score >= 80
-                              ? "badge-error"
+                              ? "text-error"
                               : transaction.risk_score >= 30
-                                ? "badge-warning"
-                                : "badge-success"
+                                ? "text-warning"
+                                : "text-success"
                           }`}
                         >
                           {transaction.risk_score}
@@ -83,17 +83,17 @@ export function TransactionsPage() {
 
                       <td>
                         <div
-                          className={`badge-sm badge ${
+                          className={`text-sm font-bold text-center text ${
                             transaction.status ===
                             "APPROVED"
-                              ? "badge-success"
+                              ? "text-success"
                               : transaction.status ===
                                   "REJECTED"
-                                ? "badge-error"
-                                : "badge-warning"
+                                ? "text-error"
+                                : "text-warning"
                           }`}
                         >
-                          {transaction.status}
+                          {transaction.status.toLowerCase()}
                         </div>
                       </td>
 
@@ -111,7 +111,7 @@ export function TransactionsPage() {
                             (signal) => (
                               <div
                                 key={signal}
-                                className="badge badge-outline badge-error"
+                                className="text text-outline text-error"
                               >
                                 {signal}
                               </div>
