@@ -1,7 +1,32 @@
+import { useQuery } from "@tanstack/react-query"
+
 import { DashboardLayout } from "../layouts/DashboardLayout"
+
+import { getDashboardSummary } from "../services/dashboard-service"
 
 
 export function DashboardPage() {
+  const {
+    data,
+    isLoading,
+  } = useQuery({
+    queryKey: [
+      "dashboard-summary",
+    ],
+
+    queryFn: getDashboardSummary,
+  })
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <span className="loading loading-spinner loading-lg" />
+        </div>
+      </DashboardLayout>
+    )
+  }
+
   return (
     <DashboardLayout>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -12,7 +37,7 @@ export function DashboardPage() {
             </p>
 
             <h2 className="text-4xl font-bold">
-              54
+              {data?.total_transactions}
             </h2>
           </div>
         </div>
@@ -24,7 +49,7 @@ export function DashboardPage() {
             </p>
 
             <h2 className="text-4xl font-bold text-error">
-              16.6%
+               {data?.fraud_rate.toFixed(1)}%
             </h2>
           </div>
         </div>
@@ -36,7 +61,7 @@ export function DashboardPage() {
             </p>
 
             <h2 className="text-4xl font-bold text-success">
-              55.5%
+                {data?.approval_rate.toFixed(1)}%
             </h2>
           </div>
         </div>
@@ -48,7 +73,7 @@ export function DashboardPage() {
             </p>
 
             <h2 className="text-4xl font-bold text-warning">
-              15
+             {data?.review_transactions}
             </h2>
           </div>
         </div>
