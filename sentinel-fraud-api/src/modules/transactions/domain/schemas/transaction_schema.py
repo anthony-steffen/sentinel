@@ -1,7 +1,10 @@
 from decimal import Decimal
+from datetime import date
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel
+from pydantic import ConfigDict
 
 from src.modules.transactions.domain.enums.fraud_signal_enums import (
     FraudSignal,
@@ -31,9 +34,12 @@ class TransactionResponse(
     risk_score: float
     fraud_signals: list[FraudSignal]
     status: TransactionStatus
+    created_at: datetime
+    updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
 
 class AnalyticsEntityResponse(
@@ -41,6 +47,39 @@ class AnalyticsEntityResponse(
 ):
     value: str
     count: int
+
+
+class AnalyticsStatusResponse(
+    BaseModel,
+):
+    status: TransactionStatus
+    count: int
+    percentage: float
+
+
+class AnalyticsRiskBucketResponse(
+    BaseModel,
+):
+    label: str
+    min_score: float
+    max_score: float
+    count: int
+    percentage: float
+
+
+class AnalyticsSignalResponse(
+    BaseModel,
+):
+    signal: FraudSignal
+    count: int
+
+
+class AnalyticsDailyVolumeResponse(
+    BaseModel,
+):
+    date: date
+    count: int
+    total_amount: float
 
 
 class TransactionAnalyticsResponse(
@@ -57,3 +96,7 @@ class TransactionAnalyticsResponse(
     approval_rate: float
     top_ips: list[AnalyticsEntityResponse]
     top_devices: list[AnalyticsEntityResponse]
+    status_distribution: list[AnalyticsStatusResponse]
+    risk_buckets: list[AnalyticsRiskBucketResponse]
+    top_signals: list[AnalyticsSignalResponse]
+    daily_volume: list[AnalyticsDailyVolumeResponse]
