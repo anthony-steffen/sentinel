@@ -6,10 +6,15 @@ import { useQueryClient } from "@tanstack/react-query"
 
 import { DashboardLayout } from "../layouts/DashboardLayout"
 
+import { FraudSignalList } from "../components/transactions/FraudSignalList"
+import { RiskScore } from "../components/transactions/RiskScore"
+import { StatusBadge } from "../components/transactions/StatusBadge"
+import { PageHeader } from "../components/ui/PageHeader"
 import {
   getReviewQueue,
   reviewTransaction,
 } from "../services/review-service"
+import { formatCurrency } from "../utils/formatters"
 
 
 export function ReviewQueuePage() {
@@ -76,13 +81,10 @@ export function ReviewQueuePage() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">
-          Review Queue
-        </h1>
-
-        <p className="text-base-content/60 mt-1">
-          Analyze suspicious transactions
-        </p>
+        <PageHeader
+          title="Review Queue"
+          description="Suspicious transactions awaiting analyst decision"
+        />
       </div>
 
       <div className="space-y-4">
@@ -96,22 +98,19 @@ export function ReviewQueuePage() {
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <div className="badge badge-error">
-                        Risk Score:
-                        {" "}
-                        {transaction.risk_score}
-                      </div>
+                      <RiskScore
+                        score={transaction.risk_score}
+                      />
 
-                      <div className="badge badge-warning">
-                        {transaction.status}
-                      </div>
+                      <StatusBadge
+                        status={transaction.status}
+                      />
                     </div>
 
                     <h2 className="text-2xl font-bold">
-                      $
-                      {Number(
+                      {formatCurrency(
                         transaction.amount,
-                      ).toFixed(2)}
+                      )}
                     </h2>
 
                     <p>
@@ -126,18 +125,10 @@ export function ReviewQueuePage() {
                       {transaction.device_id}
                     </p>
 
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      {transaction.fraud_signals.map(
-                        (signal) => (
-                          <div
-                            key={signal}
-                            className="badge badge-outline"
-                          >
-                            {signal}
-                          </div>
-                        ),
-                      )}
-                    </div>
+                    <FraudSignalList
+                      signals={transaction.fraud_signals}
+                      maxVisible={6}
+                    />
                   </div>
 
                   <div className="flex gap-3">
