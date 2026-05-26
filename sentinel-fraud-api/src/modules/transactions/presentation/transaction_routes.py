@@ -62,6 +62,10 @@ from src.modules.audit.services.audit_service import (
     AuditService,
 )
 
+from src.modules.notifications.services.notification_service import (
+    NotificationService,
+)
+
 from src.core.security.rate_limit.rate_limiter import (
     RateLimiter,
 )
@@ -157,6 +161,22 @@ async def create_transaction(
         ip_address=data.ip_address,
         user_id=str(current_user.id),
     )
+
+    if transaction.status == TransactionStatus.REVIEW:
+        await NotificationService.send_transaction_review_alert(
+            transaction_id=str(
+                transaction.id,
+            ),
+            risk_score=transaction.risk_score,
+        )
+
+    elif transaction.status == TransactionStatus.REJECTED:
+        await NotificationService.send_high_risk_transaction_alert(
+            transaction_id=str(
+                transaction.id,
+            ),
+            risk_score=transaction.risk_score,
+        )
 
     return transaction
 
@@ -267,6 +287,21 @@ async def review_transaction(
         ip_address=transaction.ip_address,
         user_id=str(current_user.id),
     )
+
+    if data.status == TransactionStatus.REJECTED:
+        await NotificationService.send_rejected_transaction_alert(
+            transaction_id=str(
+                transaction.id,
+            ),
+        )
+
+    else:
+        await NotificationService.send_transaction_status_updated_alert(
+            transaction_id=str(
+                transaction.id,
+            ),
+            status=data.status.value,
+        )
 
     return transaction
 
