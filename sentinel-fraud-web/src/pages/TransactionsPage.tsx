@@ -9,6 +9,7 @@ export function TransactionsPage() {
   const {
     data,
     isLoading,
+    isError,
   } = useQuery({
     queryKey: [
       "transactions",
@@ -22,6 +23,18 @@ export function TransactionsPage() {
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">
           <span className="loading loading-spinner loading-lg" />
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (isError) {
+    return (
+      <DashboardLayout>
+        <div className="alert alert-error">
+          <span>
+            Failed to load transactions.
+          </span>
         </div>
       </DashboardLayout>
     )

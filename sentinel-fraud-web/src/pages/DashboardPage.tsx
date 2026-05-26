@@ -1,5 +1,9 @@
 import { useQuery } from "@tanstack/react-query"
 
+import { KpiCard } from "../components/dashboard/KpiCard"
+
+import { KpiCardSkeleton } from "../components/skeletons/KpiCardSkeleton"
+
 import { DashboardLayout } from "../layouts/DashboardLayout"
 
 import { getDashboardSummary } from "../services/dashboard-service"
@@ -9,6 +13,7 @@ export function DashboardPage() {
   const {
     data,
     isLoading,
+    isError,
   } = useQuery({
     queryKey: [
       "dashboard-summary",
@@ -20,8 +25,23 @@ export function DashboardPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <span className="loading loading-spinner loading-lg" />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          <KpiCardSkeleton />
+          <KpiCardSkeleton />
+          <KpiCardSkeleton />
+          <KpiCardSkeleton />
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (isError) {
+    return (
+      <DashboardLayout>
+        <div className="alert alert-error">
+          <span>
+            Failed to load dashboard data.
+          </span>
         </div>
       </DashboardLayout>
     )
@@ -30,53 +50,32 @@ export function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        <div className="card bg-base-100 shadow-lg">
-          <div className="card-body">
-            <p className="text-base-content/70">
-              Total Transactions
-            </p>
+        <KpiCard
+          title="Total Transactions"
+          value={
+            data?.total_transactions || 0
+          }
+        />
 
-            <h2 className="text-4xl font-bold">
-              {data?.total_transactions}
-            </h2>
-          </div>
-        </div>
+        <KpiCard
+          title="Fraud Rate"
+          value={`${data?.fraud_rate.toFixed(1)}%`}
+          valueClassName="text-error"
+        />
 
-        <div className="card bg-base-100 shadow-lg">
-          <div className="card-body">
-            <p className="text-base-content/70">
-              Fraud Rate
-            </p>
+        <KpiCard
+          title="Approval Rate"
+          value={`${data?.approval_rate.toFixed(1)}%`}
+          valueClassName="text-success"
+        />
 
-            <h2 className="text-4xl font-bold text-error">
-               {data?.fraud_rate.toFixed(1)}%
-            </h2>
-          </div>
-        </div>
-
-        <div className="card bg-base-100 shadow-lg">
-          <div className="card-body">
-            <p className="text-base-content/70">
-              Approval Rate
-            </p>
-
-            <h2 className="text-4xl font-bold text-success">
-                {data?.approval_rate.toFixed(1)}%
-            </h2>
-          </div>
-        </div>
-
-        <div className="card bg-base-100 shadow-lg">
-          <div className="card-body">
-            <p className="text-base-content/70">
-              Review Queue
-            </p>
-
-            <h2 className="text-4xl font-bold text-warning">
-             {data?.review_transactions}
-            </h2>
-          </div>
-        </div>
+        <KpiCard
+          title="Review Queue"
+          value={
+            data?.review_transactions || 0
+          }
+          valueClassName="text-warning"
+        />
       </div>
     </DashboardLayout>
   )

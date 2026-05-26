@@ -1,4 +1,11 @@
+import { jwtDecode } from "jwt-decode"
+
 import { create } from "zustand"
+
+
+interface JwtPayload {
+  exp: number
+}
 
 
 interface AuthState {
@@ -12,14 +19,49 @@ interface AuthState {
 }
 
 
+function isTokenValid(
+  token: string | null,
+) {
+  if (!token) {
+    return false
+  }
+
+  try {
+    const decoded =
+      jwtDecode<JwtPayload>(
+        token,
+      )
+
+    const currentTime =
+      Date.now() / 1000
+
+    return decoded.exp > currentTime
+  } catch {
+    return false
+  }
+}
+
+
 const storedToken = localStorage.getItem(
   "sentinel-access-token",
 )
 
+const validToken = isTokenValid(
+  storedToken,
+)
+  ? storedToken
+  : null
+
+if (!validToken) {
+  localStorage.removeItem(
+    "sentinel-access-token",
+  )
+}
+
 
 export const useAuthStore = create<AuthState>(
   (set) => ({
-    accessToken: storedToken,
+    accessToken: validToken,
 
     setAccessToken: (token) => {
       if (token) {

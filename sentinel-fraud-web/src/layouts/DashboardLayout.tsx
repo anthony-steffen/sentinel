@@ -2,13 +2,20 @@ import {
   BarChart3,
   FileWarning,
   LayoutDashboard,
+  LogOut,
   Menu,
   ShieldAlert,
 } from "lucide-react"
 
-import { Link } from "react-router-dom"
+import {
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom"
 
 import { ThemeToggle } from "../components/theme-toggle"
+
+import { useAuthStore } from "../store/auth-store"
 
 
 interface DashboardLayoutProps {
@@ -19,6 +26,22 @@ interface DashboardLayoutProps {
 export function DashboardLayout({
   children,
 }: DashboardLayoutProps) {
+  const navigate = useNavigate()
+
+  const location = useLocation()
+
+  const logout = useAuthStore(
+    (state) => state.logout,
+  )
+
+  function handleLogout() {
+    logout()
+
+    navigate(
+      "/",
+    )
+  }
+
   return (
     <div className="drawer lg:drawer-open">
       <input
@@ -42,7 +65,16 @@ export function DashboardLayout({
             </h2>
           </div>
 
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+
+            <button
+              className="btn btn-ghost btn-circle"
+              onClick={handleLogout}
+            >
+              <LogOut size={20} />
+            </button>
+          </div>
         </header>
 
         <main className="flex-1 p-4 lg:p-6 overflow-auto">
@@ -70,7 +102,11 @@ export function DashboardLayout({
           <nav className="flex-1 p-4 space-y-2">
             <Link
               to="/dashboard"
-              className="btn btn-ghost justify-start w-full"
+              className={`btn justify-start w-full ${
+                location.pathname === "/dashboard"
+                  ? "btn-primary"
+                  : "btn-ghost"
+              }`}
             >
               <LayoutDashboard size={18} />
 
@@ -79,7 +115,11 @@ export function DashboardLayout({
 
             <Link
               to="/transactions"
-              className="btn btn-ghost justify-start w-full"
+              className={`btn justify-start w-full ${
+                location.pathname === "/transactions"
+                  ? "btn-primary"
+                  : "btn-ghost"
+              }`}
             >
               <BarChart3 size={18} />
 
@@ -88,7 +128,11 @@ export function DashboardLayout({
 
             <Link
               to="/review-queue"
-              className="btn btn-ghost justify-start w-full"
+              className={`btn justify-start w-full ${
+                location.pathname === "/review-queue"
+                  ? "btn-primary"
+                  : "btn-ghost"
+              }`}
             >
               <ShieldAlert size={18} />
 
@@ -97,7 +141,11 @@ export function DashboardLayout({
 
             <Link
               to="/audit-logs"
-              className="btn btn-ghost justify-start w-full"
+              className={`btn justify-start w-full ${
+                location.pathname === "/audit-logs"
+                  ? "btn-primary"
+                  : "btn-ghost"
+              }`}
             >
               <FileWarning size={18} />
 

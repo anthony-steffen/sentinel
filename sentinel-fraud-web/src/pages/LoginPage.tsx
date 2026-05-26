@@ -1,6 +1,11 @@
 import { useState } from "react"
 
-import { useNavigate } from "react-router-dom"
+import toast from "react-hot-toast"
+
+import {
+  Navigate,
+  useNavigate,
+} from "react-router-dom"
 
 import { ThemeToggle } from "../components/theme-toggle"
 
@@ -11,6 +16,10 @@ import { useAuthStore } from "../store/auth-store"
 
 export function LoginPage() {
   const navigate = useNavigate()
+
+  const accessToken = useAuthStore(
+    (state) => state.accessToken,
+  )
 
   const setAccessToken = useAuthStore(
     (state) => state.setAccessToken,
@@ -32,6 +41,15 @@ export function LoginPage() {
     "",
   )
 
+  if (accessToken) {
+    return (
+      <Navigate
+        to="/dashboard"
+        replace
+      />
+    )
+  }
+
   async function handleLogin() {
     try {
       setLoading(
@@ -51,11 +69,19 @@ export function LoginPage() {
         response.access_token,
       )
 
+      toast.success(
+        "Login successful",
+      )
+
       navigate(
         "/dashboard",
       )
     } catch {
       setError(
+        "Invalid credentials",
+      )
+
+      toast.error(
         "Invalid credentials",
       )
     } finally {
@@ -64,13 +90,14 @@ export function LoginPage() {
       )
     }
   }
+
   return (
     <div className="min-h-screen bg-base-200 flex items-center justify-center relative px-4">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
 
-      <div className="card w-full max-w-sm bg-base-100 shadow-2xl p-2">
+      <div className="card w-full max-w-md bg-base-100 shadow-2xl">
         <div className="card-body gap-2">
           <div className="text-center mb-4">
             <h1 className="text-4xl font-bold">
@@ -81,6 +108,14 @@ export function LoginPage() {
               Anti-Fraud Intelligence Platform
             </p>
           </div>
+
+          {error && (
+            <div className="alert alert-error">
+              <span>
+                {error}
+              </span>
+            </div>
+          )}
 
           <div className="form-control w-full">
             <label className="label">
@@ -121,14 +156,6 @@ export function LoginPage() {
               }
             />
           </div>
-
-          {error && (
-            <div className="alert alert-error mt-4">
-              <span>
-                {error}
-              </span>
-            </div>
-          )}
 
           <button
             className="btn btn-primary w-full mt-6"

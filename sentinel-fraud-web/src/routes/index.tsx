@@ -8,6 +8,8 @@ import { LoginPage } from "../pages/LoginPage"
 import { DashboardPage } from "../pages/DashboardPage"
 import { ProtectedRoute } from "./ProtectedRoute"
 import { TransactionsPage } from "../pages/TransactionsPage"
+import {ReviewQueuePage} from "../pages/ReviewQueuePage"
+import {AuditLogsPage} from "../pages/AuditLogsPage"
 
 export function AppRoutes() {
   return (
@@ -35,6 +37,24 @@ export function AppRoutes() {
           element={
           <ProtectedRoute>
             <TransactionsPage />
+          </ProtectedRoute>
+        }
+        />
+
+        <Route
+          path="/review-queue"
+          element={
+          <ProtectedRoute>
+            <ReviewQueuePage />
+          </ProtectedRoute>
+        }
+        />
+
+        <Route
+          path="/audit-logs"
+          element={
+          <ProtectedRoute>
+            <AuditLogsPage />
           </ProtectedRoute>
         }
         />
