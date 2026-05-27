@@ -3,67 +3,103 @@ import { create } from "zustand"
 import type { RealtimeNotification } from "../types/notification"
 
 
-interface NotificationItem
-  extends RealtimeNotification {
-  id: string
-
-  createdAt: string
-
-  read: boolean
-}
-
-
 interface NotificationState {
-  notifications: NotificationItem[]
+  notifications: RealtimeNotification[]
+
+  unreadCount: number
 
   addNotification: (
     notification: RealtimeNotification,
   ) => void
 
   markAllAsRead: () => void
+
+  clearNotifications: () => void
 }
+
+
+const STORAGE_KEY =
+  "sentinel-notifications"
+
+
+function loadNotifications() {
+  const stored =
+    localStorage.getItem(
+      STORAGE_KEY,
+    )
+
+  if (!stored) {
+    return []
+  }
+
+  try {
+    return JSON.parse(
+      stored,
+    ) as RealtimeNotification[]
+
+  } catch {
+    return []
+  }
+}
+
+
+const persistedNotifications =
+  loadNotifications()
 
 
 export const useNotificationStore =
   create<NotificationState>(
     (set) => ({
-      notifications: [],
+      notifications:
+        persistedNotifications,
+
+      unreadCount:
+        persistedNotifications.length,
 
       addNotification: (
         notification,
       ) => {
-        set((state) => ({
-          notifications: [
-            {
-              ...notification,
-
-              id:
-                crypto.randomUUID(),
-
-              createdAt:
-                new Date().toISOString(),
-
-              read: false,
-            },
-
+        set((state) => {
+          const notifications = [
+            notification,
             ...state.notifications,
-          ],
-        }))
+          ].slice(
+            0,
+            100,
+          )
+
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(
+              notifications,
+            ),
+          )
+
+          return {
+            notifications,
+
+            unreadCount:
+              state.unreadCount +
+              1,
+          }
+        })
       },
 
       markAllAsRead: () => {
-        set((state) => ({
-          notifications:
-            state.notifications.map(
-              (
-                notification,
-              ) => ({
-                ...notification,
+        set({
+          unreadCount: 0,
+        })
+      },
 
-                read: true,
-              }),
-            ),
-        }))
+      clearNotifications: () => {
+        localStorage.removeItem(
+          STORAGE_KEY,
+        )
+
+        set({
+          notifications: [],
+          unreadCount: 0,
+        })
       },
     }),
   )

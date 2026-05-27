@@ -11,10 +11,34 @@ class WebSocketService {
   private websocket: WebSocket | null =
     null
 
+  private reconnectTimeout:
+    | number
+    | null = null
+
+  private invalidateTimeout:
+    | number
+    | null = null
+
+  private reconnectAttempts = 0
+
+  private readonly maxReconnectAttempts =
+    5
+
+  private token: string | null =
+    null
+
+  private queryClient: QueryClient | null =
+    null
+
   connect(
     token: string,
     queryClient: QueryClient,
   ) {
+    this.token = token
+
+    this.queryClient =
+      queryClient
+
     if (
       this.websocket &&
       (
@@ -36,19 +60,29 @@ class WebSocketService {
       console.log(
         "[WebSocket] Connected",
       )
+
+      this.reconnectAttempts = 0
     }
 
     this.websocket.onmessage = (
       event,
     ) => {
-      const notification: RealtimeNotification =
-        JSON.parse(
-          event.data,
+      const data = JSON.parse(
+        event.data,
+      )
+
+      if (
+        data.type === "PING"
+      ) {
+        console.log(
+          "[WebSocket] Ping received",
         )
 
+        return
+      }
+
       this.handleNotification(
-        notification,
-        queryClient,
+        data,
       )
     }
 
@@ -56,6 +90,8 @@ class WebSocketService {
       console.log(
         "[WebSocket] Disconnected",
       )
+
+      this.tryReconnect()
     }
 
     this.websocket.onerror = (
@@ -70,9 +106,29 @@ class WebSocketService {
 
   disconnect() {
     if (
+      this.reconnectTimeout
+    ) {
+      clearTimeout(
+        this.reconnectTimeout,
+      )
+    }
+
+    if (
+      this.invalidateTimeout
+    ) {
+      clearTimeout(
+        this.invalidateTimeout,
+      )
+    }
+
+    if (
       this.websocket &&
-      this.websocket.readyState ===
-        WebSocket.OPEN
+      (
+        this.websocket.readyState ===
+          WebSocket.OPEN ||
+        this.websocket.readyState ===
+          WebSocket.CONNECTING
+      )
     ) {
       this.websocket.close()
     }
@@ -80,9 +136,67 @@ class WebSocketService {
     this.websocket = null
   }
 
+  private tryReconnect() {
+    if (
+      this.reconnectAttempts >=
+      this.maxReconnectAttempts
+    ) {
+      console.error(
+        "[WebSocket] Max reconnect attempts reached",
+      )
+
+      return
+    }
+
+    if (
+      !this.token ||
+      !this.queryClient
+    ) {
+      return
+    }
+
+    this.reconnectAttempts += 1
+
+    console.log(
+      `[WebSocket] Reconnecting (${this.reconnectAttempts})...`,
+    )
+
+    this.reconnectTimeout =
+      window.setTimeout(
+        () => {
+          this.connect(
+            this.token!,
+            this.queryClient!,
+          )
+        },
+        3000,
+      )
+  }
+
+  private debounceInvalidateQueries() {
+    if (
+      this.invalidateTimeout
+    ) {
+      clearTimeout(
+        this.invalidateTimeout,
+      )
+    }
+
+    this.invalidateTimeout =
+      window.setTimeout(
+        () => {
+          this.queryClient?.invalidateQueries()
+
+          console.log(
+            "[React Query] Cache invalidated",
+          )
+        },
+        1000,
+      )
+  }
+
   private handleNotification(
     notification: RealtimeNotification,
-    queryClient: QueryClient,
   ) {
     useNotificationStore
       .getState()
@@ -115,7 +229,7 @@ class WebSocketService {
         break
     }
 
-    queryClient.invalidateQueries()
+    this.debounceInvalidateQueries()
 
     console.log(
       "[Realtime Notification]",

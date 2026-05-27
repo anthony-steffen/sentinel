@@ -92,6 +92,12 @@ async def notification_websocket(
 
     try:
         while True:
+            await websocket.send_json(
+                {
+                    "type": "PING",
+                },
+            )
+
             await sleep(
                 30,
             )
