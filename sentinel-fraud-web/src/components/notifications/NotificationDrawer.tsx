@@ -1,20 +1,24 @@
-import { Bell } from "lucide-react"
+import {
+  Bell,
+  Trash2,
+} from "lucide-react"
 
-import { useState } from "react"
+import { motion } from "framer-motion"
 
 import { useNotificationStore } from "../../store/notification-store"
 
 
 export function NotificationDrawer() {
-  const [open, setOpen] =
-    useState(
-      false,
-    )
-
   const notifications =
     useNotificationStore(
       (state) =>
         state.notifications,
+    )
+
+  const unreadCount =
+    useNotificationStore(
+      (state) =>
+        state.unreadCount,
     )
 
   const markAllAsRead =
@@ -23,119 +27,128 @@ export function NotificationDrawer() {
         state.markAllAsRead,
     )
 
-  const unreadCount =
-    notifications.filter(
-      (
-        notification,
-      ) => !notification.read,
-    ).length
-
-  function handleOpen() {
-    setOpen(
-      !open,
+  const clearNotifications =
+    useNotificationStore(
+      (state) =>
+        state.clearNotifications,
     )
-
-    markAllAsRead()
-  }
 
   return (
     <div className="dropdown dropdown-end">
       <button
-        className="btn btn-ghost btn-circle"
-        onClick={handleOpen}
+        tabIndex={0}
+        className="btn btn-ghost btn-circle relative"
+        onClick={
+          markAllAsRead
+        }
       >
-        <div className="indicator">
-          <Bell size={20} />
+        <Bell size={20} />
 
-          {unreadCount > 0 && (
-            <span className="badge badge-sm badge-error indicator-item">
-              {unreadCount}
-            </span>
-          )}
-        </div>
+        {unreadCount > 0 && (
+          <motion.div
+            initial={{
+              scale: 0,
+            }}
+            animate={{
+              scale: 1,
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 500,
+              damping: 20,
+            }}
+            className="badge badge-error badge-sm absolute -top-1 -right-1"
+          >
+            {unreadCount}
+          </motion.div>
+        )}
       </button>
 
-      {open && (
-        <div className="mt-3 z-[100] card card-compact dropdown-content w-96 bg-base-100 shadow-2xl border border-base-300">
-          <div className="card-body">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-bold text-lg">
-                Notifications
-              </h3>
+      <div
+        tabIndex={0}
+        className="dropdown-content z-[100] mt-3 w-[360px] rounded-2xl border border-base-300 bg-base-100 shadow-2xl"
+      >
+        <div className="flex items-center justify-between p-4 border-b border-base-300">
+          <h3 className="font-semibold text-lg">
+            Notifications
+          </h3>
 
-              <span className="text-sm text-base-content/60">
-                {notifications.length}
-                {" "}
-                total
-              </span>
+          <button
+            className="btn btn-ghost btn-sm btn-circle"
+            onClick={
+              clearNotifications
+            }
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+
+        <div className="max-h-[500px] overflow-y-auto">
+          {notifications.length ===
+          0 ? (
+            <div className="p-6 text-center text-base-content/60">
+              No notifications
             </div>
-
-            <div className="max-h-96 overflow-y-auto space-y-3">
-              {notifications.length ===
-              0 ? (
-                <div className="text-center py-8 text-base-content/60">
-                  No notifications
-                </div>
-              ) : (
-                notifications.map(
-                  (
-                    notification,
-                  ) => (
-                    <div
-                      key={
-                        notification.id
-                      }
-                      className={`p-3 rounded-xl border ${
-                        notification.read
-                          ? "bg-base-200 border-base-300"
-                          : "bg-base-100 border-primary"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h4 className="font-semibold">
-                            {
-                              notification.title
-                            }
-                          </h4>
-
-                          <p className="text-sm text-base-content/70 mt-1">
-                            {
-                              notification.message
-                            }
-                          </p>
-                        </div>
-
-                        <div
-                          className={`badge ${
-                            notification.severity ===
-                            "CRITICAL"
-                              ? "badge-error"
-                              : notification.severity ===
-                                  "WARNING"
-                                ? "badge-warning"
-                                : "badge-success"
-                          }`}
-                        >
+          ) : (
+            <div className="p-2 space-y-2">
+              {notifications.map(
+                (
+                  notification,
+                  index,
+                ) => (
+                  <motion.div
+                    key={`${notification.title}-${index}`}
+                    initial={{
+                      opacity: 0,
+                      y: -10,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    transition={{
+                      duration: 0.2,
+                    }}
+                    className="rounded-xl border border-base-300 bg-base-200 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="font-semibold">
                           {
-                            notification.severity
+                            notification.title
                           }
-                        </div>
+                        </h4>
+
+                        <p className="text-sm text-base-content/70 mt-1">
+                          {
+                            notification.message
+                          }
+                        </p>
                       </div>
 
-                      <p className="text-xs text-base-content/50 mt-3">
-                        {new Date(
-                          notification.createdAt,
-                        ).toLocaleTimeString()}
-                      </p>
+                      <div
+                        className={`badge ${
+                          notification.severity ===
+                          "CRITICAL"
+                            ? "badge-error"
+                            : notification.severity ===
+                                "WARNING"
+                              ? "badge-warning"
+                              : "badge-success"
+                        }`}
+                      >
+                        {
+                          notification.severity
+                        }
+                      </div>
                     </div>
-                  ),
-                )
+                  </motion.div>
+                ),
               )}
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }

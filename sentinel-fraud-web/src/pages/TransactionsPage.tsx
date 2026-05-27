@@ -11,18 +11,25 @@ import {
 } from "lucide-react"
 
 import { TransactionDetailsDialog } from "../components/transactions/TransactionDetailsDialog"
+
 import {
   TransactionsTable,
   type TransactionSortKey,
 } from "../components/transactions/TransactionsTable"
+
 import { EmptyState } from "../components/ui/EmptyState"
+
 import { PageHeader } from "../components/ui/PageHeader"
+
 import { DashboardLayout } from "../layouts/DashboardLayout"
+
 import { getTransactions } from "../services/transaction-service"
+
 import type {
   Transaction,
   TransactionStatus,
 } from "../types/transaction"
+
 import { formatEnumLabel } from "../utils/formatters"
 
 
@@ -38,18 +45,26 @@ function matchesRiskFilter(
   filter: RiskFilter,
 ) {
   if (filter === "low") {
-    return transaction.risk_score < 30
+    return (
+      transaction.risk_score <
+      30
+    )
   }
 
   if (filter === "medium") {
     return (
-      transaction.risk_score >= 30
-      && transaction.risk_score < 80
+      transaction.risk_score >=
+        30 &&
+      transaction.risk_score <
+        80
     )
   }
 
   if (filter === "high") {
-    return transaction.risk_score >= 80
+    return (
+      transaction.risk_score >=
+      80
+    )
   }
 
   return true
@@ -61,14 +76,20 @@ function getSortValue(
   key: TransactionSortKey,
 ) {
   if (key === "amount") {
-    return Number(transaction.amount)
+    return Number(
+      transaction.amount,
+    )
   }
 
-  if (key === "risk_score") {
+  if (
+    key === "risk_score"
+  ) {
     return transaction.risk_score
   }
 
-  if (key === "created_at") {
+  if (
+    key === "created_at"
+  ) {
     return new Date(
       transaction.created_at,
     ).getTime()
@@ -87,27 +108,40 @@ export function TransactionsPage() {
   const [
     statusFilter,
     setStatusFilter,
-  ] = useState<TransactionStatus | "all">("all")
+  ] = useState<
+    | TransactionStatus
+    | "all"
+  >("all")
 
   const [
     riskFilter,
     setRiskFilter,
-  ] = useState<RiskFilter>("all")
+  ] =
+    useState<RiskFilter>(
+      "all",
+    )
 
   const [
     sortKey,
     setSortKey,
-  ] = useState<TransactionSortKey>("created_at")
+  ] =
+    useState<TransactionSortKey>(
+      "created_at",
+    )
 
   const [
     sortDirection,
     setSortDirection,
-  ] = useState<"asc" | "desc">("desc")
+  ] = useState<
+    "asc" | "desc"
+  >("desc")
 
   const [
     selectedTransaction,
     setSelectedTransaction,
-  ] = useState<Transaction | null>(null)
+  ] = useState<Transaction | null>(
+    null,
+  )
 
   const {
     data,
@@ -118,92 +152,117 @@ export function TransactionsPage() {
       "transactions",
     ],
 
-    queryFn: getTransactions,
+    queryFn:
+      getTransactions,
   })
 
-  const transactions = useMemo(
-    () => data || [],
-    [
-      data,
-    ],
-  )
+  const transactions =
+    useMemo(
+      () => data || [],
+      [data],
+    )
 
-  const filteredTransactions = useMemo(
-    () => {
+  const filteredTransactions =
+    useMemo(() => {
       const normalizedSearch =
-        searchTerm.trim().toLowerCase()
+        searchTerm
+          .trim()
+          .toLowerCase()
 
       return transactions
-        .filter((transaction) => {
-          const matchesSearch =
-            normalizedSearch.length === 0
-            || [
-              transaction.id,
-              transaction.user_id,
-              transaction.ip_address,
-              transaction.device_id,
-              transaction.status,
-              ...transaction.fraud_signals,
-            ]
-              .join(" ")
-              .toLowerCase()
-              .includes(normalizedSearch)
+        .filter(
+          (
+            transaction,
+          ) => {
+            const matchesSearch =
+              normalizedSearch.length ===
+                0 ||
+              [
+                transaction.id,
+                transaction.user_id,
+                transaction.ip_address,
+                transaction.device_id,
+                transaction.status,
+                ...transaction.fraud_signals,
+              ]
+                .join(" ")
+                .toLowerCase()
+                .includes(
+                  normalizedSearch,
+                )
 
-          const matchesStatus =
-            statusFilter === "all"
-            || transaction.status === statusFilter
+            const matchesStatus =
+              statusFilter ===
+                "all" ||
+              transaction.status ===
+                statusFilter
 
-          return (
-            matchesSearch
-            && matchesStatus
-            && matchesRiskFilter(
-              transaction,
-              riskFilter,
+            return (
+              matchesSearch &&
+              matchesStatus &&
+              matchesRiskFilter(
+                transaction,
+                riskFilter,
+              )
             )
-          )
-        })
-        .sort((first, second) => {
-          const firstValue = getSortValue(
+          },
+        )
+        .sort(
+          (
             first,
-            sortKey,
-          )
-
-          const secondValue = getSortValue(
             second,
-            sortKey,
-          )
+          ) => {
+            const firstValue =
+              getSortValue(
+                first,
+                sortKey,
+              )
 
-          if (firstValue < secondValue) {
-            return sortDirection === "asc"
-              ? -1
-              : 1
-          }
+            const secondValue =
+              getSortValue(
+                second,
+                sortKey,
+              )
 
-          if (firstValue > secondValue) {
-            return sortDirection === "asc"
-              ? 1
-              : -1
-          }
+            if (
+              firstValue <
+              secondValue
+            ) {
+              return sortDirection ===
+                "asc"
+                ? -1
+                : 1
+            }
 
-          return 0
-        })
-    },
-    [
+            if (
+              firstValue >
+              secondValue
+            ) {
+              return sortDirection ===
+                "asc"
+                ? 1
+                : -1
+            }
+
+            return 0
+          },
+        )
+    }, [
       transactions,
       searchTerm,
       statusFilter,
       riskFilter,
       sortKey,
       sortDirection,
-    ],
-  )
+    ])
 
   function handleSort(
     key: TransactionSortKey,
   ) {
     if (key === sortKey) {
       setSortDirection(
-        sortDirection === "asc"
+        sortDirection ===
+          "asc"
           ? "desc"
           : "asc",
       )
@@ -213,13 +272,15 @@ export function TransactionsPage() {
 
     setSortKey(key)
 
-    setSortDirection("desc")
+    setSortDirection(
+      "desc",
+    )
   }
 
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
+        <div className="flex h-full items-center justify-center">
           <span className="loading loading-spinner loading-lg" />
         </div>
       </DashboardLayout>
@@ -231,7 +292,8 @@ export function TransactionsPage() {
       <DashboardLayout>
         <div className="alert alert-error">
           <span>
-            Failed to load transactions.
+            Failed to load
+            transactions.
           </span>
         </div>
       </DashboardLayout>
@@ -246,7 +308,7 @@ export function TransactionsPage() {
           description="Transaction ledger with risk, source, status, and signal context"
         />
 
-        <div className="card bg-base-100 border border-base-300 shadow-sm">
+        <div className="card border border-base-300 bg-base-100 shadow-sm">
           <div className="card-body gap-4">
             <div className="grid gap-3 xl:grid-cols-[minmax(260px,1fr)_180px_180px]">
               <label className="input input-bordered flex items-center gap-2">
@@ -259,10 +321,15 @@ export function TransactionsPage() {
                   type="search"
                   className="grow"
                   placeholder="Search ID, IP, device, signal"
-                  value={searchTerm}
-                  onChange={(event) =>
+                  value={
+                    searchTerm
+                  }
+                  onChange={(
+                    event,
+                  ) =>
                     setSearchTerm(
-                      event.target.value,
+                      event.target
+                        .value,
                     )
                   }
                 />
@@ -276,10 +343,15 @@ export function TransactionsPage() {
 
                 <select
                   className="select select-bordered w-full pl-10"
-                  value={statusFilter}
-                  onChange={(event) =>
+                  value={
+                    statusFilter
+                  }
+                  onChange={(
+                    event,
+                  ) =>
                     setStatusFilter(
-                      event.target.value as
+                      event.target
+                        .value as
                         | TransactionStatus
                         | "all",
                     )
@@ -294,23 +366,38 @@ export function TransactionsPage() {
                     "REJECTED",
                     "REVIEW",
                     "PENDING",
-                  ].map((status) => (
-                    <option
-                      key={status}
-                      value={status}
-                    >
-                      {formatEnumLabel(status)}
-                    </option>
-                  ))}
+                  ].map(
+                    (
+                      status,
+                    ) => (
+                      <option
+                        key={
+                          status
+                        }
+                        value={
+                          status
+                        }
+                      >
+                        {formatEnumLabel(
+                          status,
+                        )}
+                      </option>
+                    ),
+                  )}
                 </select>
               </div>
 
               <select
                 className="select select-bordered"
-                value={riskFilter}
-                onChange={(event) =>
+                value={
+                  riskFilter
+                }
+                onChange={(
+                  event,
+                ) =>
                   setRiskFilter(
-                    event.target.value as RiskFilter,
+                    event.target
+                      .value as RiskFilter,
                   )
                 }
               >
@@ -334,7 +421,9 @@ export function TransactionsPage() {
 
             <div className="flex flex-wrap items-center gap-2 text-sm text-base-content/60">
               <span className="font-medium text-base-content">
-                {filteredTransactions.length}
+                {
+                  filteredTransactions.length
+                }
               </span>
 
               <span>
@@ -342,7 +431,9 @@ export function TransactionsPage() {
               </span>
 
               <span className="font-medium text-base-content">
-                {transactions.length}
+                {
+                  transactions.length
+                }
               </span>
 
               <span>
@@ -350,13 +441,24 @@ export function TransactionsPage() {
               </span>
             </div>
 
-            {filteredTransactions.length > 0 ? (
+            {filteredTransactions.length >
+            0 ? (
               <TransactionsTable
-                transactions={filteredTransactions}
-                sortKey={sortKey}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-                onSelect={setSelectedTransaction}
+                transactions={
+                  filteredTransactions
+                }
+                sortKey={
+                  sortKey
+                }
+                sortDirection={
+                  sortDirection
+                }
+                onSort={
+                  handleSort
+                }
+                onSelect={
+                  setSelectedTransaction
+                }
               />
             ) : (
               <EmptyState
@@ -370,9 +472,13 @@ export function TransactionsPage() {
       </div>
 
       <TransactionDetailsDialog
-        transaction={selectedTransaction}
+        transaction={
+          selectedTransaction
+        }
         onClose={() =>
-          setSelectedTransaction(null)
+          setSelectedTransaction(
+            null,
+          )
         }
       />
     </DashboardLayout>

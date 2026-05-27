@@ -1,5 +1,7 @@
 import type { LucideIcon } from "lucide-react"
 
+import { motion } from "framer-motion"
+
 
 interface KpiCardProps {
   title: string
@@ -8,35 +10,28 @@ interface KpiCardProps {
 
   helper?: string
 
-  icon?: LucideIcon
+  icon: LucideIcon
 
   tone?:
-    | "neutral"
+    | "default"
     | "success"
     | "warning"
     | "error"
-
-  valueClassName?: string
 }
 
 
 const toneClasses = {
-  neutral: {
-    icon: "bg-base-200 text-base-content",
-    value: "",
-  },
-  success: {
-    icon: "bg-success/10 text-success",
-    value: "text-success",
-  },
-  warning: {
-    icon: "bg-warning/10 text-warning",
-    value: "text-warning",
-  },
-  error: {
-    icon: "bg-error/10 text-error",
-    value: "text-error",
-  },
+  default:
+    "text-primary",
+
+  success:
+    "text-success",
+
+  warning:
+    "text-warning",
+
+  error:
+    "text-error",
 }
 
 
@@ -45,40 +40,66 @@ export function KpiCard({
   value,
   helper,
   icon: Icon,
-  tone = "neutral",
-  valueClassName = "",
+  tone = "default",
 }: KpiCardProps) {
-  const className = toneClasses[tone]
-
   return (
-    <div className="card bg-base-100 border border-base-300 shadow-sm">
-      <div className="card-body gap-4">
-        <div className="flex items-start justify-between gap-3">
-          <p className="text-sm font-medium text-base-content/70">
-            {title}
-          </p>
+    <motion.div
+      layout
+      initial={{
+        opacity: 0,
+        y: 12,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      transition={{
+        duration: 0.25,
+      }}
+      whileHover={{
+        y: -4,
+      }}
+      className="card border border-base-300 bg-base-100 shadow-sm transition-all"
+    >
+      <div className="card-body">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-base-content/60">
+              {title}
+            </p>
 
-          {Icon ? (
-            <div
-              className={`rounded-lg p-2 ${className.icon}`}
+            <motion.h2
+              key={String(value)}
+              initial={{
+                scale: 1.08,
+                opacity: 0.7,
+              }}
+              animate={{
+                scale: 1,
+                opacity: 1,
+              }}
+              transition={{
+                duration: 0.25,
+              }}
+              className="mt-2 text-3xl font-bold"
             >
-              <Icon size={18} />
-            </div>
-          ) : null}
+              {value}
+            </motion.h2>
+
+            {helper ? (
+              <p className="mt-2 text-sm text-base-content/60">
+                {helper}
+              </p>
+            ) : null}
+          </div>
+
+          <div
+            className={`rounded-2xl bg-base-200 p-3 ${toneClasses[tone]}`}
+          >
+            <Icon size={24} />
+          </div>
         </div>
-
-        <h2
-          className={`text-4xl font-bold ${className.value} ${valueClassName}`}
-        >
-          {value}
-        </h2>
-
-        {helper ? (
-          <p className="text-sm text-base-content/50">
-            {helper}
-          </p>
-        ) : null}
       </div>
-    </div>
+    </motion.div>
   )
 }

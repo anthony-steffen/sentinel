@@ -4,6 +4,8 @@ import { QueryClient } from "@tanstack/react-query"
 
 import { useNotificationStore } from "../store/notification-store"
 
+import { useRealtimeStore } from "../store/realtime-store"
+
 import type { RealtimeNotification } from "../types/notification"
 
 
@@ -51,6 +53,12 @@ class WebSocketService {
       return
     }
 
+    useRealtimeStore
+      .getState()
+      .setStatus(
+        "CONNECTING",
+      )
+
     this.websocket =
       new WebSocket(
         `ws://127.0.0.1:8000/notifications/ws?token=${token}`,
@@ -60,6 +68,12 @@ class WebSocketService {
       console.log(
         "[WebSocket] Connected",
       )
+
+      useRealtimeStore
+        .getState()
+        .setStatus(
+          "CONNECTED",
+        )
 
       this.reconnectAttempts = 0
     }
@@ -90,6 +104,12 @@ class WebSocketService {
       console.log(
         "[WebSocket] Disconnected",
       )
+
+      useRealtimeStore
+        .getState()
+        .setStatus(
+          "DISCONNECTED",
+        )
 
       this.tryReconnect()
     }
@@ -134,6 +154,12 @@ class WebSocketService {
     }
 
     this.websocket = null
+
+    useRealtimeStore
+      .getState()
+      .setStatus(
+        "DISCONNECTED",
+      )
   }
 
   private tryReconnect() {
@@ -156,6 +182,12 @@ class WebSocketService {
     }
 
     this.reconnectAttempts += 1
+
+    useRealtimeStore
+      .getState()
+      .setStatus(
+        "CONNECTING",
+      )
 
     console.log(
       `[WebSocket] Reconnecting (${this.reconnectAttempts})...`,
@@ -195,38 +227,55 @@ class WebSocketService {
       )
   }
 
-  private handleNotification(
-    notification: RealtimeNotification,
-  ) {
-    useNotificationStore
-      .getState()
-      .addNotification(
-        notification,
-      )
+  private lastToastTimestamp =
+  0
 
-    switch (
-      notification.severity
-    ) {
-      case "SUCCESS":
-        toast.success(
-          notification.title,
-        )
-        break
+private handleNotification(
+  notification: RealtimeNotification,
+) {
+  useNotificationStore
+    .getState()
+    .addNotification(
+      notification,
+    )
 
-      case "WARNING":
-        toast(
-          notification.title,
-          {
-            icon: "⚠️",
-          },
-        )
-        break
+    const now =
+      Date.now()
 
-      case "CRITICAL":
-        toast.error(
-          notification.title,
-        )
-        break
+    const canShowToast =
+      now -
+        this
+          .lastToastTimestamp >
+      1500
+
+    if (canShowToast) {
+      switch (
+        notification.severity
+      ) {
+        case "SUCCESS":
+          toast.success(
+            notification.title,
+          )
+          break
+
+        case "WARNING":
+          toast(
+            notification.title,
+            {
+              icon: "⚠️",
+            },
+          )
+          break
+
+        case "CRITICAL":
+          toast.error(
+            notification.title,
+          )
+          break
+      }
+
+      this.lastToastTimestamp =
+        now
     }
 
     this.debounceInvalidateQueries()

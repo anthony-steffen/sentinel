@@ -11,12 +11,21 @@ import { ChartPanel } from "../components/charts/ChartPanel"
 import { DonutChart } from "../components/charts/DonutChart"
 import { HorizontalBarChart } from "../components/charts/HorizontalBarChart"
 import { TrendChart } from "../components/charts/TrendChart"
+
 import { KpiCard } from "../components/dashboard/KpiCard"
+
+import { LiveIndicator } from "../components/realtime/LiveIndicator"
+
 import { KpiCardSkeleton } from "../components/skeletons/KpiCardSkeleton"
+
 import { DashboardLayout } from "../layouts/DashboardLayout"
+
 import { getDashboardSummary } from "../services/dashboard-service"
+
 import { getTransactionAnalytics } from "../services/transaction-service"
+
 import type { TransactionStatus } from "../types/transaction"
+
 import {
   formatCurrency,
   formatEnumLabel,
@@ -37,14 +46,17 @@ const statusColors: Record<
     stroke: "text-success",
     dot: "bg-success",
   },
+
   REJECTED: {
     stroke: "text-error",
     dot: "bg-error",
   },
+
   REVIEW: {
     stroke: "text-warning",
     dot: "bg-warning",
   },
+
   PENDING: {
     stroke: "text-neutral",
     dot: "bg-neutral",
@@ -52,9 +64,15 @@ const statusColors: Record<
 }
 
 
-const riskBarColors: Record<string, string> = {
+const riskBarColors: Record<
+  string,
+  string
+> = {
   Low: "bg-success",
-  Medium: "bg-warning",
+
+  Medium:
+    "bg-warning",
+
   High: "bg-error",
 }
 
@@ -62,31 +80,54 @@ const riskBarColors: Record<string, string> = {
 export function DashboardPage() {
   const {
     data: summary,
-    isLoading: isSummaryLoading,
-    isError: isSummaryError,
+    isLoading:
+      isSummaryLoading,
+    isError:
+      isSummaryError,
   } = useQuery({
     queryKey: [
       "dashboard-summary",
     ],
 
-    queryFn: getDashboardSummary,
+    queryFn:
+      getDashboardSummary,
   })
 
   const {
     data: analytics,
-    isLoading: isAnalyticsLoading,
-    isError: isAnalyticsError,
+    isLoading:
+      isAnalyticsLoading,
+    isError:
+      isAnalyticsError,
   } = useQuery({
     queryKey: [
       "transaction-analytics",
     ],
 
-    queryFn: getTransactionAnalytics,
+    queryFn:
+      getTransactionAnalytics,
   })
 
-  if (isSummaryLoading || isAnalyticsLoading) {
+  if (
+    isSummaryLoading ||
+    isAnalyticsLoading
+  ) {
     return (
       <DashboardLayout>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">
+              Fraud Monitoring Dashboard
+            </h1>
+
+            <p className="mt-1 text-base-content/60">
+              Real-time antifraud intelligence center
+            </p>
+          </div>
+
+          <LiveIndicator />
+        </div>
+
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
           <KpiCardSkeleton />
           <KpiCardSkeleton />
@@ -96,15 +137,33 @@ export function DashboardPage() {
 
         <div className="mt-6 grid gap-6 xl:grid-cols-2">
           <div className="skeleton h-80 rounded-lg" />
+
           <div className="skeleton h-80 rounded-lg" />
         </div>
       </DashboardLayout>
     )
   }
 
-  if (isSummaryError || isAnalyticsError) {
+  if (
+    isSummaryError ||
+    isAnalyticsError
+  ) {
     return (
       <DashboardLayout>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">
+              Fraud Monitoring Dashboard
+            </h1>
+
+            <p className="mt-1 text-base-content/60">
+              Real-time antifraud intelligence center
+            </p>
+          </div>
+
+          <LiveIndicator />
+        </div>
+
         <div className="alert alert-error">
           <span>
             Failed to load dashboard data.
@@ -116,12 +175,27 @@ export function DashboardPage() {
 
   return (
     <DashboardLayout>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">
+            Fraud Monitoring Dashboard
+          </h1>
+
+          <p className="mt-1 text-base-content/60">
+            Real-time antifraud intelligence center
+          </p>
+        </div>
+
+        <LiveIndicator />
+      </div>
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           title="Total Transactions"
           icon={Activity}
           value={
-            summary?.total_transactions || 0
+            summary?.total_transactions ||
+            0
           }
           helper="All processed activity"
         />
@@ -130,7 +204,8 @@ export function DashboardPage() {
           title="Fraud Rate"
           icon={ShieldAlert}
           value={formatPercent(
-            summary?.fraud_rate || 0,
+            summary?.fraud_rate ||
+              0,
           )}
           tone="error"
           helper={`${summary?.rejected_transactions || 0} rejected transactions`}
@@ -140,7 +215,8 @@ export function DashboardPage() {
           title="Average Risk"
           icon={Gauge}
           value={Math.round(
-            summary?.average_risk_score || 0,
+            summary?.average_risk_score ||
+              0,
           )}
           tone="warning"
           helper="Weighted operational exposure"
@@ -149,11 +225,10 @@ export function DashboardPage() {
         <KpiCard
           title="Transaction Volume"
           icon={DollarSign}
-          value={
-            formatCurrency(
-              analytics?.total_amount || 0,
-            )
-          }
+          value={formatCurrency(
+            analytics?.total_amount ||
+              0,
+          )}
           tone="success"
           helper="Total authorized amount"
         />
@@ -167,22 +242,36 @@ export function DashboardPage() {
           <DonutChart
             centerLabel="transactions"
             centerValue={
-              analytics?.total_transactions || 0
+              analytics?.total_transactions ||
+              0
             }
             segments={
               analytics?.status_distribution.map(
-                (status) => ({
-                  label: formatEnumLabel(
-                    status.status,
-                  ),
-                  value: status.count,
-                  helper: formatPercent(
-                    status.percentage,
-                  ),
+                (
+                  status,
+                ) => ({
+                  label:
+                    formatEnumLabel(
+                      status.status,
+                    ),
+
+                  value:
+                    status.count,
+
+                  helper:
+                    formatPercent(
+                      status.percentage,
+                    ),
+
                   strokeClassName:
-                    statusColors[status.status].stroke,
+                    statusColors[
+                      status.status
+                    ].stroke,
+
                   dotClassName:
-                    statusColors[status.status].dot,
+                    statusColors[
+                      status.status
+                    ].dot,
                 }),
               ) || []
             }
@@ -197,14 +286,21 @@ export function DashboardPage() {
             emptyLabel="No daily transaction volume yet."
             points={
               analytics?.daily_volume.map(
-                (day) => ({
-                  label: formatShortDate(
-                    day.date,
-                  ),
-                  value: day.count,
-                  helper: formatCurrency(
-                    day.total_amount,
-                  ),
+                (
+                  day,
+                ) => ({
+                  label:
+                    formatShortDate(
+                      day.date,
+                    ),
+
+                  value:
+                    day.count,
+
+                  helper:
+                    formatCurrency(
+                      day.total_amount,
+                    ),
                 }),
               ) || []
             }
@@ -219,15 +315,24 @@ export function DashboardPage() {
             emptyLabel="No risk distribution yet."
             data={
               analytics?.risk_buckets.map(
-                (bucket) => ({
+                (
+                  bucket,
+                ) => ({
                   label: `${bucket.label} (${bucket.min_score}-${bucket.max_score})`,
-                  value: bucket.count,
-                  helper: formatPercent(
-                    bucket.percentage,
-                  ),
+
+                  value:
+                    bucket.count,
+
+                  helper:
+                    formatPercent(
+                      bucket.percentage,
+                    ),
+
                   barClassName:
-                    riskBarColors[bucket.label]
-                    || "bg-primary",
+                    riskBarColors[
+                      bucket.label
+                    ] ||
+                    "bg-primary",
                 }),
               ) || []
             }
@@ -242,12 +347,19 @@ export function DashboardPage() {
             emptyLabel="No fraud signals detected yet."
             data={
               analytics?.top_signals.map(
-                (signal) => ({
-                  label: formatEnumLabel(
-                    signal.signal,
-                  ),
-                  value: signal.count,
-                  barClassName: "bg-error",
+                (
+                  signal,
+                ) => ({
+                  label:
+                    formatEnumLabel(
+                      signal.signal,
+                    ),
+
+                  value:
+                    signal.count,
+
+                  barClassName:
+                    "bg-error",
                 }),
               ) || []
             }
@@ -262,10 +374,17 @@ export function DashboardPage() {
             emptyLabel="No IP concentration yet."
             data={
               analytics?.top_ips.map(
-                (item) => ({
-                  label: item.value,
-                  value: item.count,
-                  barClassName: "bg-info",
+                (
+                  item,
+                ) => ({
+                  label:
+                    item.value,
+
+                  value:
+                    item.count,
+
+                  barClassName:
+                    "bg-info",
                 }),
               ) || []
             }
@@ -280,10 +399,17 @@ export function DashboardPage() {
             emptyLabel="No device concentration yet."
             data={
               analytics?.top_devices.map(
-                (item) => ({
-                  label: item.value,
-                  value: item.count,
-                  barClassName: "bg-secondary",
+                (
+                  item,
+                ) => ({
+                  label:
+                    item.value,
+
+                  value:
+                    item.count,
+
+                  barClassName:
+                    "bg-secondary",
                 }),
               ) || []
             }
