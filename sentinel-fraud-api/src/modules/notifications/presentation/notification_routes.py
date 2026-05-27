@@ -1,3 +1,4 @@
+from asyncio import sleep
 from uuid import uuid4
 
 from fastapi import APIRouter
@@ -35,6 +36,7 @@ async def _can_connect_to_realtime(
         payload = decode_token(
             token,
         )
+
     except Exception:
         return False
 
@@ -90,14 +92,10 @@ async def notification_websocket(
 
     try:
         while True:
-            message = await websocket.receive_text()
+            await sleep(
+                30,
+            )
 
-            if message == "ping":
-                await websocket.send_json(
-                    {
-                        "type": "PONG",
-                    },
-                )
     except WebSocketDisconnect:
         notification_connection_manager.disconnect(
             connection_id,

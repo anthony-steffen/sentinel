@@ -2,9 +2,9 @@ import {
   BarChart3,
   FileWarning,
   LayoutDashboard,
-  LogOut,
   Menu,
   ShieldAlert,
+  LogOut,
 } from "lucide-react"
 
 import {
@@ -12,6 +12,8 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom"
+
+import { NotificationDrawer } from "../components/notifications/NotificationDrawer"
 
 import { ThemeToggle } from "../components/theme-toggle"
 
@@ -42,6 +44,17 @@ export function DashboardLayout({
     )
   }
 
+  function getNavClass(
+    path: string,
+  ) {
+    const isActive =
+      location.pathname === path
+
+    return isActive
+      ? "btn btn-primary justify-start w-full"
+      : "btn btn-ghost justify-start w-full"
+  }
+
   return (
     <div className="drawer lg:drawer-open">
       <input
@@ -66,6 +79,8 @@ export function DashboardLayout({
           </div>
 
           <div className="flex items-center gap-2">
+            <NotificationDrawer />
+
             <ThemeToggle />
 
             <button
@@ -102,11 +117,9 @@ export function DashboardLayout({
           <nav className="flex-1 p-4 space-y-2">
             <Link
               to="/dashboard"
-              className={`btn justify-start w-full ${
-                location.pathname === "/dashboard"
-                  ? "btn-primary"
-                  : "btn-ghost"
-              }`}
+              className={getNavClass(
+                "/dashboard",
+              )}
             >
               <LayoutDashboard size={18} />
 
@@ -115,11 +128,9 @@ export function DashboardLayout({
 
             <Link
               to="/transactions"
-              className={`btn justify-start w-full ${
-                location.pathname === "/transactions"
-                  ? "btn-primary"
-                  : "btn-ghost"
-              }`}
+              className={getNavClass(
+                "/transactions",
+              )}
             >
               <BarChart3 size={18} />
 
@@ -128,11 +139,9 @@ export function DashboardLayout({
 
             <Link
               to="/review-queue"
-              className={`btn justify-start w-full ${
-                location.pathname === "/review-queue"
-                  ? "btn-primary"
-                  : "btn-ghost"
-              }`}
+              className={getNavClass(
+                "/review-queue",
+              )}
             >
               <ShieldAlert size={18} />
 
@@ -141,11 +150,9 @@ export function DashboardLayout({
 
             <Link
               to="/audit-logs"
-              className={`btn justify-start w-full ${
-                location.pathname === "/audit-logs"
-                  ? "btn-primary"
-                  : "btn-ghost"
-              }`}
+              className={getNavClass(
+                "/audit-logs",
+              )}
             >
               <FileWarning size={18} />
 

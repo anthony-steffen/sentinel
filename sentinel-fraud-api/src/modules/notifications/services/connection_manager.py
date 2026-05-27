@@ -9,7 +9,10 @@ class NotificationConnectionManager:
     def __init__(
         self,
     ):
-        self.active_connections: dict[str, WebSocket] = {}
+        self.active_connections: dict[
+            str,
+            WebSocket,
+        ] = {}
 
     async def connect(
         self,
@@ -39,12 +42,16 @@ class NotificationConnectionManager:
 
         disconnected_connections: list[str] = []
 
-        for connection_id, websocket in self.active_connections.items():
+        for (
+            connection_id,
+            websocket,
+        ) in self.active_connections.items():
             try:
                 await websocket.send_json(
                     payload,
                 )
-            except RuntimeError:
+
+            except Exception:
                 disconnected_connections.append(
                     connection_id,
                 )
