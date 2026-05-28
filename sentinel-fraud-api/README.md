@@ -50,3 +50,14 @@ Build da imagem da API:
 ```bash
 docker build -t sentinel-fraud-api .
 ```
+
+## Credenciais demo para recrutadores
+
+As contas demo oficiais ficam no fluxo de [infra/demo/README.md](../infra/demo/README.md).
+
+Resumo rapido:
+
+- senha: `SentinelDemo@2026`
+- `demo.admin@sentinel-demo.com` (`ADMIN`)
+- `demo.analyst@sentinel-demo.com` (`ANALYST`)
+- `demo.operator@sentinel-demo.com` (`OPERATOR`)
