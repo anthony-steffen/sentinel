@@ -42,3 +42,9 @@ Exemplo de staging:
 VITE_API_BASE_URL=/api
 VITE_WS_BASE_URL=ws://localhost:8080/notifications/ws
 ```
+
+## Acesso para recrutadores
+
+Para acesso publico sem custo e credenciais demo validadas, use:
+
+- [infra/demo/README.md](../infra/demo/README.md)

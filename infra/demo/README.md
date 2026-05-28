@@ -13,6 +13,7 @@ O script:
 - cria `.env.staging` e `sentinel-fraud-api/.env.staging` a partir dos templates (se nao existirem)
 - sobe os containers com `docker compose`
 - executa health check da Web e da API
+- recria usuarios demo para recrutadores (com senha conhecida e perfis corretos)
 
 ## 2) Abrir link publico temporario
 
@@ -36,6 +37,39 @@ Importante:
 
 ## 4) Dicas para reduzir risco em avaliacao
 
-- envie junto um usuario demo pronto (email/senha)
+- envie junto as credenciais demo abaixo
 - marque janela de teste (ex: 14:00-18:00)
 - deixe este roteiro no README principal do projeto
+
+## 5) Credenciais demo para recrutadores
+
+Senha para todas as contas:
+
+- `SentinelDemo@2026`
+
+Contas:
+
+- `demo.admin@sentinel-demo.com` (`ADMIN`)
+- `demo.analyst@sentinel-demo.com` (`ANALYST`)
+- `demo.operator@sentinel-demo.com` (`OPERATOR`)
+
+## 6) Janela de avaliacao (o que significa)
+
+Janela de avaliacao e o periodo em que voce garante que o ambiente estara online para teste.
+Exemplo: "Disponivel hoje das 14:00 as 18:00 (UTC-3)".
+
+Como o link depende do seu computador local, fora dessa janela pode ficar indisponivel.
+
+## 7) Rotacao de senha apos entrevista
+
+Para recriar as contas demo com senha atual:
+
+```powershell
+.\infra\demo\reset-demo-users.ps1
+```
+
+Para trocar a senha, informe um novo valor:
+
+```powershell
+.\infra\demo\reset-demo-users.ps1 -DemoPassword "NovaSenhaForte@2026"
+```

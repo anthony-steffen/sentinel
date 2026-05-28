@@ -5,7 +5,8 @@ param(
   [string]$ApiEnvFile = "$PSScriptRoot\..\..\sentinel-fraud-api\.env.staging",
   [string]$ApiEnvTemplateFile = "$PSScriptRoot\..\..\sentinel-fraud-api\.env.staging.example",
   [int]$WebPort = 8080,
-  [int]$ApiPort = 8000
+  [int]$ApiPort = 8000,
+  [switch]$SkipDemoUserReset
 )
 
 Set-StrictMode -Version Latest
@@ -67,6 +68,15 @@ Write-Host "Running health checks..." -ForegroundColor Cyan
 & "$PSScriptRoot\smoke-test.ps1" `
   -WebUrl "http://localhost:$WebPort" `
   -ApiHealthUrl "http://localhost:$ApiPort/health"
+
+if (-not $SkipDemoUserReset) {
+  Write-Host ""
+  Write-Host "Resetting recruiter demo users..." -ForegroundColor Cyan
+  & "$PSScriptRoot\reset-demo-users.ps1" `
+    -ComposeFile $resolvedComposeFile `
+    -EnvFile $resolvedEnvFile `
+    -ApiBaseUrl "http://127.0.0.1:$ApiPort"
+}
 
 Write-Host ""
 Write-Host "Demo stack ready." -ForegroundColor Green
