@@ -1,0 +1,95 @@
+name: sentinel-staging
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: sentinel_staging_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-sentinel}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-sentinel}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sentinel_staging
+
+  redis:
+    image: redis:8
+    container_name: sentinel_staging_redis
+    restart: unless-stopped
+    networks:
+      - sentinel_staging
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: sentinel_staging_rabbitmq
+    restart: unless-stopped
+    ports:
+      - "${STAGING_RABBITMQ_PORT:-15672}:15672"
+    networks:
+      - sentinel_staging
+
+  api:
+    build:
+      context: ./sentinel-fraud-api
+      dockerfile: Dockerfile
+    container_name: sentinel_staging_api
+    restart: unless-stopped
+    env_file:
+      - ./sentinel-fraud-api/.env.staging
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    ports:
+      - "${STAGING_API_PORT:-8000}:8000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sentinel_staging
+
+  web:
+    build:
+      context: ./sentinel-fraud-web
+      dockerfile: Dockerfile
+    container_name: sentinel_staging_web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${STAGING_WEB_PORT:-8080}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sentinel_staging
+
+volumes:
+  postgres_data:
+
+networks:
+  sentinel_staging:
+    driver: bridge

@@ -8,6 +8,21 @@ import { useRealtimeStore } from "../store/realtime-store"
 
 import type { RealtimeNotification } from "../types/notification"
 
+const websocketProtocol =
+  window.location.protocol ===
+  "https:"
+    ? "wss"
+    : "ws"
+
+const defaultWebsocketUrl =
+  import.meta.env.PROD
+    ? `${websocketProtocol}://${window.location.host}/notifications/ws`
+    : "ws://127.0.0.1:8000/notifications/ws"
+
+const websocketBaseUrl =
+  import.meta.env.VITE_WS_BASE_URL ??
+  defaultWebsocketUrl
+
 
 class WebSocketService {
   private websocket: WebSocket | null =
@@ -63,7 +78,7 @@ class WebSocketService {
 
     this.websocket =
       new WebSocket(
-        `ws://127.0.0.1:8000/notifications/ws?token=${token}`,
+        `${websocketBaseUrl}?token=${token}`,
       )
 
     this.websocket.onopen = () => {
