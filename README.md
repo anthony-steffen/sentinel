@@ -7,18 +7,12 @@ Plataforma full stack para monitoramento e analise de fraude, com dashboard, tra
 Fluxo recomendado (sem custo de hospedagem):
 
 1. Subir stack local com Docker.
-2. Abrir link publico (temporario ou fixo).
+2. Abrir link publico temporario (`localhost.run`).
 3. Testar com credenciais demo.
 
 Guia completo:
 
 - [infra/demo/README.md](infra/demo/README.md)
-
-Opcao de URL fixa:
-
-- `Cloudflare Tunnel` com subdominio fixo + token `CLOUDFLARED_TUNNEL_TOKEN`
-- script pronto: `.\infra\demo\start-fixed-public-demo.ps1`
-- inicializacao automatica no logon: `.\infra\demo\register-startup-task.ps1`
 
 ## Credenciais demo (validadas)
 
