@@ -10,6 +10,12 @@ Fluxo recomendado (sem custo de hospedagem):
 2. Abrir link publico temporario (`localhost.run`).
 3. Testar com credenciais demo.
 
+Atalho para Git Bash:
+
+```bash
+bash ./infra/demo/start-public-demo.sh
+```
+
 Guia completo:
 
 - [infra/demo/README.md](infra/demo/README.md)
