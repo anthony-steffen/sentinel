@@ -47,6 +47,31 @@ function Assert-FileExists {
   }
 }
 
+function Invoke-ApiMigrations {
+  param(
+    [string]$ComposeFilePath,
+    [string]$EnvFilePath,
+    [int]$MaxAttempts = 6
+  )
+
+  for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+    try {
+      docker compose --env-file $EnvFilePath -f $ComposeFilePath exec -T api `
+        alembic upgrade head | Out-Null
+
+      Write-Host "Database migrations applied." -ForegroundColor Green
+      return
+    } catch {
+      if ($attempt -eq $MaxAttempts) {
+        throw "Failed to apply database migrations after $MaxAttempts attempts."
+      }
+
+      Write-Host "Migration attempt $attempt failed. Retrying..." -ForegroundColor Yellow
+      Start-Sleep -Seconds 5
+    }
+  }
+}
+
 Assert-CommandExists -Name "docker"
 
 Ensure-FileFromTemplate -Path $EnvFile -TemplatePath $EnvTemplateFile -Label "Root env file"
@@ -61,6 +86,10 @@ $resolvedEnvFile = (Resolve-Path -LiteralPath $EnvFile).Path
 
 Write-Host "Starting Sentinel demo stack..." -ForegroundColor Cyan
 docker compose --env-file $resolvedEnvFile -f $resolvedComposeFile up -d --build
+
+Write-Host ""
+Write-Host "Applying database migrations..." -ForegroundColor Cyan
+Invoke-ApiMigrations -ComposeFilePath $resolvedComposeFile -EnvFilePath $resolvedEnvFile
 
 Write-Host ""
 Write-Host "Running health checks..." -ForegroundColor Cyan

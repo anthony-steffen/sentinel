@@ -20,6 +20,7 @@ O script:
 
 - cria `.env.staging` e `sentinel-fraud-api/.env.staging` a partir dos templates (se nao existirem)
 - sobe os containers com `docker compose`
+- aplica migracoes do banco (`alembic upgrade head`)
 - executa health check da Web e da API
 - recria usuarios demo para recrutadores (com senha conhecida e perfis corretos)
 - abre tunel temporario no `localhost.run`
