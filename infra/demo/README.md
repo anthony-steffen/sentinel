@@ -29,19 +29,38 @@ Importante:
 - mantenha o computador ligado e com internet
 - se o terminal fechar, o link cai
 
-## 3) Encerrar demo
+## 3) URL fixa (recomendado)
+
+Para nao depender de URL aleatoria a cada sessao, use Cloudflare Tunnel com subdominio fixo.
+
+Requisito minimo:
+
+- dominio configurado no Cloudflare
+- tunnel criado no painel do Cloudflare
+- token do tunnel (CLOUDFLARED_TUNNEL_TOKEN)
+
+Uso:
+
+```powershell
+$env:CLOUDFLARED_TUNNEL_TOKEN = "<SEU_TOKEN>"
+.\infra\demo\start-fixed-public-demo.ps1
+```
+
+Esse comando sobe a stack local e abre o tunel com URL fixa (a definida no Cloudflare, por exemplo `demo.seudominio.com`).
+
+## 4) Encerrar demo
 
 ```powershell
 .\infra\demo\stop-demo.ps1
 ```
 
-## 4) Dicas para reduzir risco em avaliacao
+## 5) Dicas para reduzir risco em avaliacao
 
 - envie junto as credenciais demo abaixo
 - marque janela de teste (ex: 14:00-18:00)
 - deixe este roteiro no README principal do projeto
 
-## 5) Credenciais demo para recrutadores
+## 6) Credenciais demo para recrutadores
 
 Senha para todas as contas:
 
@@ -53,14 +72,14 @@ Contas:
 - `demo.analyst@sentinel-demo.com` (`ANALYST`)
 - `demo.operator@sentinel-demo.com` (`OPERATOR`)
 
-## 6) Janela de avaliacao (o que significa)
+## 7) Janela de avaliacao (o que significa)
 
 Janela de avaliacao e o periodo em que voce garante que o ambiente estara online para teste.
 Exemplo: "Disponivel hoje das 14:00 as 18:00 (UTC-3)".
 
 Como o link depende do seu computador local, fora dessa janela pode ficar indisponivel.
 
-## 7) Rotacao de senha apos entrevista
+## 8) Rotacao de senha apos entrevista
 
 Para recriar as contas demo com senha atual:
 
