@@ -4,8 +4,16 @@ Este fluxo usa Docker local + tunel SSH temporario para compartilhar a aplicacao
 
 ## 1) Subir stack + abrir link publico (comando unico)
 
+No PowerShell:
+
 ```powershell
 .\infra\demo\start-public-demo.ps1
+```
+
+No Git Bash (MINGW64):
+
+```bash
+bash ./infra/demo/start-public-demo.sh
 ```
 
 O script:
@@ -33,8 +41,16 @@ Importante:
 
 ## 3) Encerrar demo
 
+No PowerShell:
+
 ```powershell
 .\infra\demo\stop-demo.ps1
+```
+
+No Git Bash (MINGW64):
+
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w ./infra/demo/stop-demo.ps1)"
 ```
 
 ## 4) Dicas para reduzir risco em avaliacao
