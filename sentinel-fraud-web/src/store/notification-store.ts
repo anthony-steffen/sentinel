@@ -3,8 +3,15 @@ import { create } from "zustand"
 import type { RealtimeNotification } from "../types/notification"
 
 
+interface StoredNotification {
+  read: boolean
+
+  payload: RealtimeNotification
+}
+
+
 interface NotificationState {
-  notifications: RealtimeNotification[]
+  notifications: StoredNotification[]
 
   unreadCount: number
 
@@ -33,13 +40,32 @@ function loadNotifications() {
   }
 
   try {
-    return JSON.parse(
+    const parsed = JSON.parse(
       stored,
-    ) as RealtimeNotification[]
+    ) as StoredNotification[]
+
+    return parsed.filter(
+      (item) =>
+        Boolean(
+          item?.payload?.id,
+        ),
+    )
 
   } catch {
     return []
   }
+}
+
+
+function saveNotifications(
+  notifications: StoredNotification[],
+) {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(
+      notifications,
+    ),
+  )
 }
 
 
@@ -54,40 +80,60 @@ export const useNotificationStore =
         persistedNotifications,
 
       unreadCount:
-        persistedNotifications.length,
+        persistedNotifications.filter(
+          (item) =>
+            !item.read,
+        ).length,
 
       addNotification: (
         notification,
       ) => {
         set((state) => {
           const notifications = [
-            notification,
+            {
+              read: false,
+              payload:
+                notification,
+            },
             ...state.notifications,
           ].slice(
             0,
             100,
           )
 
-          localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(
-              notifications,
-            ),
+          saveNotifications(
+            notifications,
           )
 
           return {
             notifications,
-
             unreadCount:
-              state.unreadCount +
-              1,
+              notifications.filter(
+                (item) =>
+                  !item.read,
+              ).length,
           }
         })
       },
 
       markAllAsRead: () => {
-        set({
-          unreadCount: 0,
+        set((state) => {
+          const notifications =
+            state.notifications.map(
+              (item) => ({
+                ...item,
+                read: true,
+              }),
+            )
+
+          saveNotifications(
+            notifications,
+          )
+
+          return {
+            notifications,
+            unreadCount: 0,
+          }
         })
       },
 

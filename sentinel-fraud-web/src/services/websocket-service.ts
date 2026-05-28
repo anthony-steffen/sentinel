@@ -32,6 +32,8 @@ class WebSocketService {
   private queryClient: QueryClient | null =
     null
 
+  private lastToastTimestamp = 0
+
   connect(
     token: string,
     queryClient: QueryClient,
@@ -65,10 +67,6 @@ class WebSocketService {
       )
 
     this.websocket.onopen = () => {
-      console.log(
-        "[WebSocket] Connected",
-      )
-
       useRealtimeStore
         .getState()
         .setStatus(
@@ -81,30 +79,36 @@ class WebSocketService {
     this.websocket.onmessage = (
       event,
     ) => {
-      const data = JSON.parse(
-        event.data,
-      )
-
-      if (
-        data.type === "PING"
-      ) {
-        console.log(
-          "[WebSocket] Ping received",
+      const parsedData =
+        this.parseMessage(
+          event.data,
         )
 
+      if (!parsedData) {
+        return
+      }
+
+      if (
+        parsedData.type ===
+        "PING"
+      ) {
+        return
+      }
+
+      if (
+        !this.isRealtimeNotification(
+          parsedData,
+        )
+      ) {
         return
       }
 
       this.handleNotification(
-        data,
+        parsedData,
       )
     }
 
     this.websocket.onclose = () => {
-      console.log(
-        "[WebSocket] Disconnected",
-      )
-
       useRealtimeStore
         .getState()
         .setStatus(
@@ -162,14 +166,66 @@ class WebSocketService {
       )
   }
 
+  private parseMessage(
+    eventData: string,
+  ) {
+    try {
+      return JSON.parse(
+        eventData,
+      ) as Record<
+        string,
+        unknown
+      >
+    } catch {
+      return null
+    }
+  }
+
+  private isRealtimeNotification(
+    value: unknown,
+  ): value is RealtimeNotification {
+    if (
+      typeof value !==
+      "object"
+      || value === null
+    ) {
+      return false
+    }
+
+    const candidate = value as Record<
+      string,
+      unknown
+    >
+
+    return (
+      typeof candidate.id ===
+        "string"
+      && typeof candidate.type ===
+        "string"
+      && typeof candidate.severity ===
+        "string"
+      && typeof candidate.title ===
+        "string"
+      && typeof candidate.message ===
+        "string"
+      && typeof candidate.created_at ===
+        "string"
+      && typeof candidate.metadata ===
+        "object"
+      && candidate.metadata !== null
+    )
+  }
+
   private tryReconnect() {
     if (
       this.reconnectAttempts >=
       this.maxReconnectAttempts
     ) {
-      console.error(
-        "[WebSocket] Max reconnect attempts reached",
-      )
+      useRealtimeStore
+        .getState()
+        .setStatus(
+          "DISCONNECTED",
+        )
 
       return
     }
@@ -188,10 +244,6 @@ class WebSocketService {
       .setStatus(
         "CONNECTING",
       )
-
-    console.log(
-      `[WebSocket] Reconnecting (${this.reconnectAttempts})...`,
-    )
 
     this.reconnectTimeout =
       window.setTimeout(
@@ -218,26 +270,19 @@ class WebSocketService {
       window.setTimeout(
         () => {
           this.queryClient?.invalidateQueries()
-
-          console.log(
-            "[React Query] Cache invalidated",
-          )
         },
         1000,
       )
   }
 
-  private lastToastTimestamp =
-  0
-
-private handleNotification(
-  notification: RealtimeNotification,
-) {
-  useNotificationStore
-    .getState()
-    .addNotification(
-      notification,
-    )
+  private handleNotification(
+    notification: RealtimeNotification,
+  ) {
+    useNotificationStore
+      .getState()
+      .addNotification(
+        notification,
+      )
 
     const now =
       Date.now()
@@ -249,29 +294,34 @@ private handleNotification(
       1500
 
     if (canShowToast) {
-      switch (
-        notification.severity
+      if (
+        notification.severity ===
+        "CRITICAL"
       ) {
-        case "SUCCESS":
-          toast.success(
-            notification.title,
-          )
-          break
-
-        case "WARNING":
-          toast(
-            notification.title,
-            {
-              icon: "⚠️",
-            },
-          )
-          break
-
-        case "CRITICAL":
-          toast.error(
-            notification.title,
-          )
-          break
+        toast.error(
+          notification.title,
+        )
+      } else if (
+        notification.severity ===
+        "WARNING"
+      ) {
+        toast(
+          notification.title,
+          {
+            icon: "!",
+          },
+        )
+      } else if (
+        notification.severity ===
+        "INFO"
+      ) {
+        toast(
+          notification.title,
+        )
+      } else {
+        toast.success(
+          notification.title,
+        )
       }
 
       this.lastToastTimestamp =
@@ -279,11 +329,6 @@ private handleNotification(
     }
 
     this.debounceInvalidateQueries()
-
-    console.log(
-      "[Realtime Notification]",
-      notification,
-    )
   }
 }
 

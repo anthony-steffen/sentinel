@@ -7,6 +7,29 @@ import { motion } from "framer-motion"
 
 import { useNotificationStore } from "../../store/notification-store"
 
+import { formatDateTime } from "../../utils/formatters"
+
+import type { NotificationSeverity } from "../../types/notification"
+
+
+function getSeverityClassName(
+  severity: NotificationSeverity,
+) {
+  if (severity === "CRITICAL") {
+    return "badge-error"
+  }
+
+  if (severity === "WARNING") {
+    return "badge-warning"
+  }
+
+  if (severity === "INFO") {
+    return "badge-info"
+  }
+
+  return "badge-success"
+}
+
 
 export function NotificationDrawer() {
   const notifications =
@@ -41,10 +64,11 @@ export function NotificationDrawer() {
         onClick={
           markAllAsRead
         }
+        title="Notifications"
       >
         <Bell size={20} />
 
-        {unreadCount > 0 && (
+        {unreadCount > 0 ? (
           <motion.div
             initial={{
               scale: 0,
@@ -59,17 +83,19 @@ export function NotificationDrawer() {
             }}
             className="badge badge-error badge-sm absolute -top-1 -right-1"
           >
-            {unreadCount}
+            {unreadCount > 99
+              ? "99+"
+              : unreadCount}
           </motion.div>
-        )}
+        ) : null}
       </button>
 
       <div
         tabIndex={0}
         className="dropdown-content z-[100] mt-3 w-[360px] rounded-2xl border border-base-300 bg-base-100 shadow-2xl"
       >
-        <div className="flex items-center justify-between p-4 border-b border-base-300">
-          <h3 className="font-semibold text-lg">
+        <div className="flex items-center justify-between border-b border-base-300 p-4">
+          <h3 className="text-lg font-semibold">
             Notifications
           </h3>
 
@@ -78,26 +104,25 @@ export function NotificationDrawer() {
             onClick={
               clearNotifications
             }
+            title="Clear notifications"
           >
             <Trash2 size={16} />
           </button>
         </div>
 
         <div className="max-h-[500px] overflow-y-auto">
-          {notifications.length ===
-          0 ? (
+          {notifications.length === 0 ? (
             <div className="p-6 text-center text-base-content/60">
               No notifications
             </div>
           ) : (
-            <div className="p-2 space-y-2">
+            <div className="space-y-2 p-2">
               {notifications.map(
-                (
-                  notification,
-                  index,
-                ) => (
+                (item) => (
                   <motion.div
-                    key={`${notification.title}-${index}`}
+                    key={
+                      item.payload.id
+                    }
                     initial={{
                       opacity: 0,
                       y: -10,
@@ -109,36 +134,42 @@ export function NotificationDrawer() {
                     transition={{
                       duration: 0.2,
                     }}
-                    className="rounded-xl border border-base-300 bg-base-200 p-4"
+                    className={`rounded-xl border p-4 ${
+                      item.read
+                        ? "border-base-300 bg-base-200"
+                        : "border-primary/30 bg-primary/5"
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <h4 className="font-semibold">
                           {
-                            notification.title
+                            item.payload
+                              .title
                           }
                         </h4>
 
-                        <p className="text-sm text-base-content/70 mt-1">
+                        <p className="mt-1 text-sm text-base-content/70">
                           {
-                            notification.message
+                            item.payload
+                              .message
                           }
+                        </p>
+
+                        <p className="mt-2 text-xs text-base-content/50">
+                          {formatDateTime(
+                            item.payload
+                              .created_at,
+                          )}
                         </p>
                       </div>
 
                       <div
-                        className={`badge ${
-                          notification.severity ===
-                          "CRITICAL"
-                            ? "badge-error"
-                            : notification.severity ===
-                                "WARNING"
-                              ? "badge-warning"
-                              : "badge-success"
-                        }`}
+                        className={`badge ${getSeverityClassName(item.payload.severity)}`}
                       >
                         {
-                          notification.severity
+                          item.payload
+                            .severity
                         }
                       </div>
                     </div>
