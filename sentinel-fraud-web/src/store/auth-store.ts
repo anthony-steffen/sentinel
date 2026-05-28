@@ -2,6 +2,8 @@ import { jwtDecode } from "jwt-decode"
 
 import { create } from "zustand"
 
+import type { AuthUser } from "../types/auth"
+
 
 interface JwtPayload {
   exp: number
@@ -11,8 +13,20 @@ interface JwtPayload {
 interface AuthState {
   accessToken: string | null
 
+  currentUser: AuthUser | null
+
+  isSessionResolved: boolean
+
   setAccessToken: (
     token: string | null,
+  ) => void
+
+  setCurrentUser: (
+    user: AuthUser | null,
+  ) => void
+
+  setSessionResolved: (
+    resolved: boolean,
   ) => void
 
   logout: () => void
@@ -63,6 +77,10 @@ export const useAuthStore = create<AuthState>(
   (set) => ({
     accessToken: validToken,
 
+    currentUser: null,
+
+    isSessionResolved: !validToken,
+
     setAccessToken: (token) => {
       if (token) {
         localStorage.setItem(
@@ -77,6 +95,23 @@ export const useAuthStore = create<AuthState>(
 
       set({
         accessToken: token,
+        currentUser: null,
+        isSessionResolved: !token,
+      })
+    },
+
+    setCurrentUser: (user) => {
+      set({
+        currentUser: user,
+        isSessionResolved: true,
+      })
+    },
+
+    setSessionResolved: (
+      resolved,
+    ) => {
+      set({
+        isSessionResolved: resolved,
       })
     },
 
@@ -87,6 +122,8 @@ export const useAuthStore = create<AuthState>(
 
       set({
         accessToken: null,
+        currentUser: null,
+        isSessionResolved: true,
       })
     },
   }),

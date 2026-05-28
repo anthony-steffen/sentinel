@@ -10,6 +10,7 @@ import { ProtectedRoute } from "./ProtectedRoute"
 import { TransactionsPage } from "../pages/TransactionsPage"
 import {ReviewQueuePage} from "../pages/ReviewQueuePage"
 import {AuditLogsPage} from "../pages/AuditLogsPage"
+import { UnauthorizedPage } from "../pages/UnauthorizedPage"
 
 export function AppRoutes() {
   return (
@@ -26,7 +27,12 @@ export function AppRoutes() {
         <Route
           path="/dashboard"
           element={
-          <ProtectedRoute>
+          <ProtectedRoute
+            allowedRoles={[
+              "ADMIN",
+              "ANALYST",
+            ]}
+          >
             <DashboardPage />
           </ProtectedRoute>
         }
@@ -35,7 +41,12 @@ export function AppRoutes() {
         <Route
           path="/transactions"
           element={
-          <ProtectedRoute>
+          <ProtectedRoute
+            allowedRoles={[
+              "ADMIN",
+              "ANALYST",
+            ]}
+          >
             <TransactionsPage />
           </ProtectedRoute>
         }
@@ -44,7 +55,12 @@ export function AppRoutes() {
         <Route
           path="/review-queue"
           element={
-          <ProtectedRoute>
+          <ProtectedRoute
+            allowedRoles={[
+              "ADMIN",
+              "ANALYST",
+            ]}
+          >
             <ReviewQueuePage />
           </ProtectedRoute>
         }
@@ -53,9 +69,21 @@ export function AppRoutes() {
         <Route
           path="/audit-logs"
           element={
-          <ProtectedRoute>
+          <ProtectedRoute
+            allowedRoles={[
+              "ADMIN",
+              "ANALYST",
+            ]}
+          >
             <AuditLogsPage />
           </ProtectedRoute>
+        }
+        />
+
+        <Route
+          path="/unauthorized"
+          element={
+          <UnauthorizedPage />
         }
         />
 

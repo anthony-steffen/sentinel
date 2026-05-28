@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 
 import {
+  useQuery,
   QueryClient,
   QueryClientProvider,
   useQueryClient,
@@ -12,6 +13,8 @@ import { ThemeProvider } from "./providers/theme-provider"
 
 import { AppRoutes } from "./routes"
 
+import { getCurrentUser } from "./services/auth-service"
+
 import { websocketService } from "./services/websocket-service"
 
 import { useAuthStore } from "./store/auth-store"
@@ -19,6 +22,81 @@ import { useAuthStore } from "./store/auth-store"
 
 const queryClient =
   new QueryClient()
+
+function AuthSessionProvider() {
+  const accessToken =
+    useAuthStore(
+      (state) =>
+        state.accessToken,
+    )
+
+  const setCurrentUser =
+    useAuthStore(
+      (state) =>
+        state.setCurrentUser,
+    )
+
+  const setSessionResolved =
+    useAuthStore(
+      (state) =>
+        state.setSessionResolved,
+    )
+
+  const logout = useAuthStore(
+    (state) => state.logout,
+  )
+
+  const sessionQuery =
+    useQuery({
+      queryKey: [
+        "auth-me",
+      ],
+
+      queryFn:
+        getCurrentUser,
+
+      enabled:
+        Boolean(accessToken),
+
+      retry: false,
+    })
+
+  useEffect(() => {
+    if (!accessToken) {
+      setCurrentUser(
+        null,
+      )
+
+      setSessionResolved(
+        true,
+      )
+
+      return
+    }
+
+    if (sessionQuery.isSuccess) {
+      setCurrentUser(
+        sessionQuery.data,
+      )
+
+      return
+    }
+
+    if (sessionQuery.isError) {
+      logout()
+    }
+  }, [
+    accessToken,
+    logout,
+    sessionQuery.data,
+    sessionQuery.isError,
+    sessionQuery.isSuccess,
+    setCurrentUser,
+    setSessionResolved,
+  ])
+
+  return null
+}
 
 
 function RealtimeProvider() {
@@ -31,8 +109,36 @@ function RealtimeProvider() {
         state.accessToken,
     )
 
+  const currentUser =
+    useAuthStore(
+      (state) =>
+        state.currentUser,
+    )
+
+  const isSessionResolved =
+    useAuthStore(
+      (state) =>
+        state.isSessionResolved,
+    )
+
   useEffect(() => {
-    if (!accessToken) {
+    if (
+      !accessToken
+      || !isSessionResolved
+      || !currentUser
+    ) {
+      websocketService.disconnect()
+
+      return
+    }
+
+    const canUseRealtime =
+      currentUser.role ===
+        "ADMIN"
+      || currentUser.role ===
+        "ANALYST"
+
+    if (!canUseRealtime) {
       websocketService.disconnect()
 
       return
@@ -44,6 +150,8 @@ function RealtimeProvider() {
     )
   }, [
     accessToken,
+    currentUser,
+    isSessionResolved,
     queryClient,
   ])
 
@@ -63,6 +171,8 @@ function App() {
             duration: 3000,
           }}
         />
+
+        <AuthSessionProvider />
 
         <RealtimeProvider />
 
