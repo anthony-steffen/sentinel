@@ -54,13 +54,53 @@ Esse comando sobe a stack local e abre o tunel com URL fixa (a definida no Cloud
 .\infra\demo\stop-demo.ps1
 ```
 
-## 5) Dicas para reduzir risco em avaliacao
+## 5) Inicializacao automatica no Windows (Task Scheduler)
+
+1. Defina o token do Cloudflare no Windows:
+
+```powershell
+setx CLOUDFLARED_TUNNEL_TOKEN "<SEU_TOKEN>"
+```
+
+2. Feche e abra o PowerShell.
+
+3. Registre a tarefa automatica:
+
+```powershell
+.\infra\demo\register-startup-task.ps1
+```
+
+4. Inicie sem reiniciar (opcional):
+
+```powershell
+Start-ScheduledTask -TaskName "SentinelFixedDemoTunnel"
+```
+
+5. Verifique status:
+
+```powershell
+Get-ScheduledTask -TaskName "SentinelFixedDemoTunnel"
+```
+
+6. Verifique logs do launcher:
+
+```powershell
+Get-Content .\infra\demo\logs\startup.log -Tail 100
+```
+
+Para remover a automacao:
+
+```powershell
+.\infra\demo\unregister-startup-task.ps1
+```
+
+## 6) Dicas para reduzir risco em avaliacao
 
 - envie junto as credenciais demo abaixo
 - marque janela de teste (ex: 14:00-18:00)
 - deixe este roteiro no README principal do projeto
 
-## 6) Credenciais demo para recrutadores
+## 7) Credenciais demo para recrutadores
 
 Senha para todas as contas:
 
@@ -72,14 +112,14 @@ Contas:
 - `demo.analyst@sentinel-demo.com` (`ANALYST`)
 - `demo.operator@sentinel-demo.com` (`OPERATOR`)
 
-## 7) Janela de avaliacao (o que significa)
+## 8) Janela de avaliacao (o que significa)
 
 Janela de avaliacao e o periodo em que voce garante que o ambiente estara online para teste.
 Exemplo: "Disponivel hoje das 14:00 as 18:00 (UTC-3)".
 
 Como o link depende do seu computador local, fora dessa janela pode ficar indisponivel.
 
-## 8) Rotacao de senha apos entrevista
+## 9) Rotacao de senha apos entrevista
 
 Para recriar as contas demo com senha atual:
 
