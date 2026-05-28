@@ -1,40 +1,40 @@
-# Staging Deploy Guide
+# Guia de Deploy em Staging
 
-## 1) Prepare environment files
+## 1) Preparar arquivos de ambiente
 
-Copy the templates and adjust values:
+Copie os templates e ajuste os valores:
 
 ```powershell
 Copy-Item .env.staging.example .env.staging
 Copy-Item sentinel-fraud-api/.env.staging.example sentinel-fraud-api/.env.staging
 ```
 
-## 2) Deploy staging stack
+## 2) Subir o ambiente de staging
 
 ```powershell
 .\infra\staging\deploy.ps1
 ```
 
-This command builds and starts:
+Esse comando faz build e inicia:
 
-- `web` (nginx + static React build)
+- `web` (nginx + build estático React)
 - `api` (FastAPI)
 - `postgres`
 - `redis`
 - `rabbitmq`
 
-## 3) Run smoke test
+## 3) Executar smoke test
 
 ```powershell
 .\infra\staging\smoke-test.ps1
 ```
 
-Default URLs:
+URLs padrão:
 
 - Web: `http://localhost:8080`
-- API health: `http://localhost:8000/health`
+- Health da API: `http://localhost:8000/health`
 
-## 4) Useful operations
+## 4) Operações úteis
 
 ```powershell
 docker compose --env-file .env.staging -f docker-compose.staging.yml ps
