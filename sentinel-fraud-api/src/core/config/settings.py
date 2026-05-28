@@ -9,11 +9,12 @@ class Settings(
 ):
     APP_NAME: str = "Sentinel Fraud API"
     APP_ENV: str = "development"
-    DB_HOST: str
-    DB_PORT: int
-    DB_NAME: str
-    DB_USER: str
-    DB_PASSWORD: str
+    DATABASE_URL: str | None = None
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_NAME: str = "sentinel"
+    DB_USER: str = "postgres"
+    DB_PASSWORD: str = "postgres"
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int
@@ -44,6 +45,43 @@ class Settings(
             )
             if origin.strip()
         ]
+
+    @property
+    def database_url(self) -> str:
+        if self.DATABASE_URL:
+            if self.DATABASE_URL.startswith(
+                "postgresql+asyncpg://",
+            ):
+                return self.DATABASE_URL
+
+            if self.DATABASE_URL.startswith(
+                "postgresql://",
+            ):
+                return self.DATABASE_URL.replace(
+                    "postgresql://",
+                    "postgresql+asyncpg://",
+                    1,
+                )
+
+            if self.DATABASE_URL.startswith(
+                "postgres://",
+            ):
+                return self.DATABASE_URL.replace(
+                    "postgres://",
+                    "postgresql+asyncpg://",
+                    1,
+                )
+
+            return self.DATABASE_URL
+
+        return (
+            f"postgresql+asyncpg://"
+            f"{self.DB_USER}:"
+            f"{self.DB_PASSWORD}@"
+            f"{self.DB_HOST}:"
+            f"{self.DB_PORT}/"
+            f"{self.DB_NAME}"
+        )
 
 
 settings = Settings()
