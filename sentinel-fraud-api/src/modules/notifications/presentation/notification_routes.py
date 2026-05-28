@@ -2,6 +2,7 @@ from asyncio import sleep
 from uuid import uuid4
 
 from fastapi import APIRouter
+from fastapi import HTTPException
 from fastapi import Query
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
@@ -17,6 +18,7 @@ from src.modules.notifications.services.connection_manager import (
 
 from src.modules.users.domain.enums.user_enums import (
     UserRole,
+    UserStatus,
 )
 
 from src.modules.users.infrastructure.repositories.user_repository import (
@@ -37,7 +39,17 @@ async def _can_connect_to_realtime(
             token,
         )
 
+    except HTTPException:
+        return False
+
     except Exception:
+        return False
+
+    token_type = payload.get(
+        "type",
+    )
+
+    if token_type != "access":
         return False
 
     user_id = payload.get(
@@ -57,6 +69,9 @@ async def _can_connect_to_realtime(
         )
 
         if not user:
+            return False
+
+        if user.status != UserStatus.ACTIVE:
             return False
 
         return user.role in [

@@ -6,13 +6,15 @@ from fastapi.security import OAuth2PasswordBearer
 
 from jose import JWTError, jwt
 
-SECRET_KEY = "super-secret-key"
+from src.core.config.settings import settings
 
-ALGORITHM = "HS256"
+SECRET_KEY = settings.JWT_SECRET_KEY
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ALGORITHM = settings.JWT_ALGORITHM
 
-REFRESH_TOKEN_EXPIRE_DAYS = 7
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+
+REFRESH_TOKEN_EXPIRE_DAYS = settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS
 
 
 oauth2_scheme = OAuth2PasswordBearer(
