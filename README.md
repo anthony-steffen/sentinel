@@ -18,6 +18,7 @@ Opcao de URL fixa:
 
 - `Cloudflare Tunnel` com subdominio fixo + token `CLOUDFLARED_TUNNEL_TOKEN`
 - script pronto: `.\infra\demo\start-fixed-public-demo.ps1`
+- inicializacao automatica no logon: `.\infra\demo\register-startup-task.ps1`
 
 ## Credenciais demo (validadas)
 
