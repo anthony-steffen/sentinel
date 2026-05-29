@@ -82,3 +82,8 @@ Guia completo: [docs/guia-e2e.md](docs/guia-e2e.md)
 - Rate limiting para login e transacoes
 - RBAC no backend e no frontend
 - Audit logs para acoes criticas
+
+## Licenca
+
+Este projeto esta licenciado sob a Apache License 2.0.
+Consulte o arquivo [LICENSE](LICENSE).
