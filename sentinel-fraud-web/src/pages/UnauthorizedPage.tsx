@@ -5,9 +5,44 @@ import {
 
 import { useNavigate } from "react-router-dom"
 
+import { useAuthStore } from "../store/auth-store"
+
 
 export function UnauthorizedPage() {
   const navigate = useNavigate()
+
+  const currentUser = useAuthStore(
+    (state) =>
+      state.currentUser,
+  )
+
+  const logout = useAuthStore(
+    (state) => state.logout,
+  )
+
+  const canAccessDashboard =
+    currentUser?.role ===
+      "ADMIN"
+    || currentUser?.role ===
+      "ANALYST"
+    || currentUser?.role ===
+      "OPERATOR"
+
+  function handleGoBack() {
+    if (canAccessDashboard) {
+      navigate(
+        "/dashboard",
+      )
+
+      return
+    }
+
+    logout()
+
+    navigate(
+      "/",
+    )
+  }
 
   return (
     <div className="min-h-screen bg-base-200 flex items-center justify-center px-4">
@@ -26,14 +61,12 @@ export function UnauthorizedPage() {
 
         <button
           className="btn btn-primary mt-6"
-          onClick={() =>
-            navigate(
-              "/dashboard",
-            )
-          }
+          onClick={handleGoBack}
         >
           <ArrowLeft size={16} />
-          Back to dashboard
+          {canAccessDashboard
+            ? "Back to dashboard"
+            : "Back to login"}
         </button>
       </div>
     </div>

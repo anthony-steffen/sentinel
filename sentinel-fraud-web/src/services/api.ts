@@ -7,8 +7,38 @@ const defaultBaseUrl =
     : "http://127.0.0.1:8000"
 
 const apiBaseUrl =
-  import.meta.env.VITE_API_BASE_URL ??
-  defaultBaseUrl
+  resolveApiBaseUrl()
+
+function resolveApiBaseUrl() {
+  const configuredBaseUrl =
+    import.meta.env.VITE_API_BASE_URL?.trim()
+
+  if (!configuredBaseUrl) {
+    return defaultBaseUrl
+  }
+
+  const isPublicHost =
+    !["localhost", "127.0.0.1"].includes(
+      window.location.hostname,
+    )
+
+  const pointsToLocalhost =
+    configuredBaseUrl.includes(
+      "localhost",
+    )
+    || configuredBaseUrl.includes(
+      "127.0.0.1",
+    )
+
+  if (
+    isPublicHost &&
+    pointsToLocalhost
+  ) {
+    return "/api"
+  }
+
+  return configuredBaseUrl
+}
 
 export const api = axios.create({
   baseURL: apiBaseUrl,

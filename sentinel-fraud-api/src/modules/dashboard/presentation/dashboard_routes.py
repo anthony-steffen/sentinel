@@ -41,6 +41,7 @@ async def dashboard_summary(
         require_roles(
             UserRole.ADMIN,
             UserRole.ANALYST,
+            UserRole.OPERATOR,
         ),
     ),
 ):
