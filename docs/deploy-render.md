@@ -84,7 +84,7 @@ Abra a URL do frontend e valide:
 - O Web Service gratuito pode entrar em sleep após inatividade.
 - O primeiro acesso após sleep pode demorar alguns segundos.
 - O banco gratuito tem limitações de armazenamento e retenção.
-- Para apresentação a recrutadores, deixe uma conta demo documentada no README principal.
+- Mantenha uma conta demo documentada no README principal para facilitar validação funcional.
 
 ## 7) Troubleshooting rápido
 

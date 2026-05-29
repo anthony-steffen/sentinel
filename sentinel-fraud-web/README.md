@@ -1,6 +1,10 @@
 # Sentinel Fraud Web
 
-Frontend do Sentinel para monitoramento de fraude, com foco em operação analítica, revisão de transações e notificações em tempo real.
+Frontend do Sentinel para monitoramento de fraude, com foco em operacao analitica, revisao de transacoes e notificacoes em tempo real.
+
+![React](https://img.shields.io/badge/React-UI-20232a?style=for-the-badge&logo=react&logoColor=61dafb)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-build-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 
 ## Tecnologias
 
@@ -22,19 +26,19 @@ npm install
 npm run dev
 ```
 
-Aplicação disponível em `http://localhost:5173`.
+Aplicacao disponivel em `http://localhost:5173`.
 
-## Build de produção
+## Build de producao
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Variáveis de ambiente
+## Variaveis de ambiente
 
 - `VITE_API_BASE_URL`: URL base da API REST.
-- `VITE_WS_BASE_URL`: URL base do WebSocket de notificações.
+- `VITE_WS_BASE_URL`: URL base do WebSocket de notificacoes.
 
 Exemplo de staging:
 
@@ -43,7 +47,7 @@ VITE_API_BASE_URL=/api
 VITE_WS_BASE_URL=ws://localhost:8080/notifications/ws
 ```
 
-## Acesso para recrutadores
+## Acesso publico para testes
 
 Para acesso publico sem custo e credenciais demo validadas, use:
 

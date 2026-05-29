@@ -1,32 +1,30 @@
 # Sentinel Fraud Platform
 
-Sentinel e uma plataforma full stack para monitoramento antifraude com dashboard analitico, trilha de auditoria, RBAC e notificacoes em tempo real.
+Plataforma full stack para monitoramento antifraude com dashboard analitico, trilha de auditoria, RBAC e notificacoes em tempo real.
 
-Projeto desenvolvido com foco em:
+![Status](https://img.shields.io/badge/status-active-0a7ea4?style=for-the-badge)
+![Backend](https://img.shields.io/badge/backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Frontend](https://img.shields.io/badge/frontend-React-20232a?style=for-the-badge&logo=react&logoColor=61dafb)
+![Database](https://img.shields.io/badge/database-PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
+![Infra](https://img.shields.io/badge/infra-Docker-0db7ed?style=for-the-badge&logo=docker&logoColor=white)
 
-- arquitetura limpa e evolutiva
-- seguranca de acesso e rastreabilidade
-- experiencia de operacao para times analiticos
-- demonstracao tecnica pronta para recrutadores
+## Visao geral
 
-## Highlights tecnicos
-
-- Dashboard analitico com KPI cards, charts e filtros operacionais
+- Dashboard com KPIs, distribuicoes e tendencia operacional
 - Pipeline de transacoes com score de risco e sinais de fraude
-- RBAC por perfil (`ADMIN`, `ANALYST`, `OPERATOR`)
-- Auditoria de eventos sensiveis (login, revisao, aprovacoes, rejeicoes)
-- Realtime para notificacoes via WebSocket
-- Infra Docker para API, web e dependencias
-- Fluxo de demo publica sem custo via tunel temporario
+- Controle de acesso por perfil (`ADMIN`, `ANALYST`, `OPERATOR`)
+- Auditoria de eventos criticos
+- Notificacoes em tempo real via WebSocket
+- Execucao local e de staging com Docker
 
 ## Arquitetura
 
-Camadas principais:
+Componentes principais:
 
-1. `sentinel-fraud-web` (React + Vite + TanStack Query + Zustand)
+1. `sentinel-fraud-web` (React + TypeScript + Vite)
 2. `sentinel-fraud-api` (FastAPI + SQLAlchemy + Alembic)
-3. `postgres` para persistencia
-4. `redis` e `rabbitmq` preparados para cenarios de mensageria e escala
+3. `postgres` (persistencia)
+4. `redis` e `rabbitmq` (componentes de suporte de mensageria/cache)
 
 Documentacao por modulo:
 
@@ -35,27 +33,21 @@ Documentacao por modulo:
 - Staging: [infra/staging/README.md](infra/staging/README.md)
 - Demo publica: [infra/demo/README.md](infra/demo/README.md)
 
-## Demo para recrutadores
+## Execucao rapida da demo publica
 
-Fluxo recomendado (sem custo de hospedagem):
-
-1. Subir stack local
-2. Abrir link publico temporario
-3. Compartilhar URL + credenciais demo
-
-No Git Bash:
+Git Bash:
 
 ```bash
 bash ./infra/demo/start-public-demo.sh
 ```
 
-No PowerShell:
+PowerShell:
 
 ```powershell
 .\infra\demo\start-public-demo.ps1
 ```
 
-## Credenciais demo (validadas)
+## Credenciais demo para testar a aplicacao
 
 Senha para todas as contas:
 
@@ -67,32 +59,27 @@ Contas:
 2. `demo.analyst@sentinel-demo.com` (`ANALYST`)
 3. `demo.operator@sentinel-demo.com` (`OPERATOR`)
 
-## Fluxos recomendados de avaliacao
+## Galeria
 
-1. Login com `ADMIN` e revisar dashboard + transacoes + auditoria
-2. Login com `ANALYST` e validar operacao analitica
-3. Login com `OPERATOR` e validar escopo de acesso restrito
-4. Simular criacao/revisao de transacao e observar atualizacao de estado
+Adicione as imagens nesses caminhos para exibicao automatica:
 
-## Seguranca e governanca
+1. `docs/assets/dashboard-desktop.png`
+2. `docs/assets/dashboard-mobile.png`
+3. `docs/assets/rbac-access-denied.png`
+4. `docs/assets/transactions-table.png`
+
+Bloco de exibicao:
+
+```md
+![Dashboard Desktop](docs/assets/dashboard-desktop.png)
+![Dashboard Mobile](docs/assets/dashboard-mobile.png)
+![RBAC](docs/assets/rbac-access-denied.png)
+![Transactions](docs/assets/transactions-table.png)
+```
+
+## Seguranca
 
 - JWT access/refresh
 - Rate limiting para login e transacoes
 - RBAC no backend e no frontend
 - Audit logs para acoes criticas
-- Separacao de ambientes por variaveis e compose dedicado
-
-## Roadmap atual
-
-- Dia 10: Analytics + tables + transaction details (concluido)
-- Dia 11: Realtime + notifications (concluido)
-- Dia 12: RBAC + security + UX polish (concluido)
-- Dia 13: Docker + infra + deploy staging (concluido)
-- Dia 14: Deploy producao + CI/CD (pendente)
-- Dia 15: README premium + documentacao final (em finalizacao)
-
-## Materiais para portfolio
-
-- Kit de publicacao no LinkedIn: [docs/portfolio/linkedin-kit.md](docs/portfolio/linkedin-kit.md)
-- Guia para destaque no GitHub: [docs/portfolio/github-showcase.md](docs/portfolio/github-showcase.md)
-- Roteiro de video end-to-end: [docs/portfolio/video-runbook.md](docs/portfolio/video-runbook.md)
