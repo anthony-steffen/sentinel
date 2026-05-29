@@ -32,6 +32,7 @@ Documentacao por modulo:
 - Web: [sentinel-fraud-web/README.md](sentinel-fraud-web/README.md)
 - Staging: [infra/staging/README.md](infra/staging/README.md)
 - Demo publica: [infra/demo/README.md](infra/demo/README.md)
+- Guia E2E com capturas reais: [docs/guia-e2e.md](docs/guia-e2e.md)
 
 ## Execucao rapida da demo publica
 
@@ -59,23 +60,21 @@ Contas:
 2. `demo.analyst@sentinel-demo.com` (`ANALYST`)
 3. `demo.operator@sentinel-demo.com` (`OPERATOR`)
 
-## Galeria
+## Fluxo visual E2E
 
-Adicione as imagens nesses caminhos para exibicao automatica:
+Capturas reais do fluxo completo de uso:
 
-1. `docs/assets/dashboard-desktop.png`
-2. `docs/assets/dashboard-mobile.png`
-3. `docs/assets/rbac-access-denied.png`
-4. `docs/assets/transactions-table.png`
+1. Login
+2. Registro de usuario via API
+3. Criacao de transacao via API
+4. Dashboard + Transactions + Review Queue + Audit Logs
+5. Validacao de RBAC
 
-Bloco de exibicao:
+Guia completo: [docs/guia-e2e.md](docs/guia-e2e.md)
 
-```md
-![Dashboard Desktop](docs/assets/dashboard-desktop.png)
-![Dashboard Mobile](docs/assets/dashboard-mobile.png)
-![RBAC](docs/assets/rbac-access-denied.png)
-![Transactions](docs/assets/transactions-table.png)
-```
+![Dashboard](docs/assets/e2e/05-dashboard-admin.png)
+![Transactions](docs/assets/e2e/06-transactions-table.png)
+![Review Queue](docs/assets/e2e/08-review-queue.png)
 
 ## Seguranca
 

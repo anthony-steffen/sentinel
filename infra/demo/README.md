@@ -94,3 +94,9 @@ Para trocar a senha, informe um novo valor:
 ```powershell
 .\infra\demo\reset-demo-users.ps1 -DemoPassword "NovaSenhaForte@2026"
 ```
+
+## 8) Guia visual E2E
+
+Para validacao completa (API + frontend + RBAC) com capturas reais, consulte:
+
+- `docs/guia-e2e.md`
