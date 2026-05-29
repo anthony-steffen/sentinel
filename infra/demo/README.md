@@ -1,6 +1,9 @@
-# Demo publica para recrutadores (sem custo)
+# Demo publica (sem custo)
 
-Este fluxo usa Docker local + tunel SSH temporario para compartilhar a aplicacao sem pagar hospedagem.
+Este fluxo usa Docker local + tunel SSH temporario para disponibilizar a aplicacao por URL publica.
+
+![Demo](https://img.shields.io/badge/demo-localhost.run-2d6cdf?style=for-the-badge)
+![No Card](https://img.shields.io/badge/sem%20cartao-100%25-2f855a?style=for-the-badge)
 
 ## 1) Subir stack + abrir link publico (comando unico)
 
@@ -22,7 +25,7 @@ O script:
 - sobe os containers com `docker compose`
 - aplica migracoes do banco (`alembic upgrade head`)
 - executa health check da Web e da API
-- recria usuarios demo para recrutadores (com senha conhecida e perfis corretos)
+- recria usuarios demo com senha conhecida e perfis corretos
 - abre tunel temporario no `localhost.run`
 
 ## 2) Fluxo manual (alternativo)
@@ -32,13 +35,14 @@ O script:
 .\infra\demo\open-public-link.ps1
 ```
 
-Quando o comando iniciar, ele exibira uma URL publica HTTPS. Compartilhe essa URL com recrutadores.
+Quando o comando iniciar, ele exibira uma URL publica HTTPS.
 
 Importante:
 
 - mantenha o terminal do tunel aberto
 - mantenha o computador ligado e com internet
 - se o terminal fechar, o link cai
+- se a URL cair, rode novamente `start-public-demo`
 
 ## 3) Encerrar demo
 
@@ -54,13 +58,13 @@ No Git Bash (MINGW64):
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w ./infra/demo/stop-demo.ps1)"
 ```
 
-## 4) Dicas para reduzir risco em avaliacao
+## 4) Boas praticas operacionais
 
-- envie junto as credenciais demo abaixo
-- marque janela de teste (ex: 14:00-18:00)
-- deixe este roteiro no README principal do projeto
+- execute o comando poucos minutos antes da sessao de teste
+- mantenha o terminal do tunel aberto durante todo o uso
+- valide login e dashboard antes de compartilhar a URL
 
-## 5) Credenciais demo para recrutadores
+## 5) Credenciais demo para testar a aplicacao
 
 Senha para todas as contas:
 
@@ -72,14 +76,12 @@ Contas:
 - `demo.analyst@sentinel-demo.com` (`ANALYST`)
 - `demo.operator@sentinel-demo.com` (`OPERATOR`)
 
-## 6) Janela de avaliacao (o que significa)
+## 6) Janela de disponibilidade
 
-Janela de avaliacao e o periodo em que voce garante que o ambiente estara online para teste.
-Exemplo: "Disponivel hoje das 14:00 as 18:00 (UTC-3)".
+Janela de disponibilidade: Periodo no qual é garantido que o ambiente estara online para teste.
+Das 14:00 as 18:00 (UTC-3)".
 
-Como o link depende do seu computador local, fora dessa janela pode ficar indisponivel.
-
-## 7) Rotacao de senha apos entrevista
+## 7) Rotacao de senha
 
 Para recriar as contas demo com senha atual:
 
