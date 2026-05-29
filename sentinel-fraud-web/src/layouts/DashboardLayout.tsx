@@ -48,6 +48,7 @@ const navItems: NavItem[] = [
     allowedRoles: [
       "ADMIN",
       "ANALYST",
+      "OPERATOR",
     ],
   },
   {
@@ -149,7 +150,11 @@ export function DashboardLayout({
               <Menu size={22} />
             </label>
 
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-base font-semibold leading-tight sm:hidden">
+              Anti-Fraud Ops Center
+            </h2>
+
+            <h2 className="hidden text-lg font-semibold sm:block">
               Anti-Fraud Operations Center
             </h2>
           </div>

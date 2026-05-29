@@ -228,6 +228,7 @@ async def transaction_analytics(
         require_roles(
             UserRole.ADMIN,
             UserRole.ANALYST,
+            UserRole.OPERATOR,
         ),
     ),
 ):

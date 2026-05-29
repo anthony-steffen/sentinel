@@ -20,8 +20,38 @@ const defaultWebsocketUrl =
     : "ws://127.0.0.1:8000/notifications/ws"
 
 const websocketBaseUrl =
-  import.meta.env.VITE_WS_BASE_URL ??
-  defaultWebsocketUrl
+  resolveWebsocketBaseUrl()
+
+function resolveWebsocketBaseUrl() {
+  const configuredWebsocketUrl =
+    import.meta.env.VITE_WS_BASE_URL?.trim()
+
+  if (!configuredWebsocketUrl) {
+    return defaultWebsocketUrl
+  }
+
+  const isPublicHost =
+    !["localhost", "127.0.0.1"].includes(
+      window.location.hostname,
+    )
+
+  const pointsToLocalhost =
+    configuredWebsocketUrl.includes(
+      "localhost",
+    )
+    || configuredWebsocketUrl.includes(
+      "127.0.0.1",
+    )
+
+  if (
+    isPublicHost &&
+    pointsToLocalhost
+  ) {
+    return `${websocketProtocol}://${window.location.host}/notifications/ws`
+  }
+
+  return configuredWebsocketUrl
+}
 
 
 class WebSocketService {
